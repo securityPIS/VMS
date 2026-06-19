@@ -2,13 +2,14 @@
 
 Panel admin (tema gelap). State petugas terpusat di `AdminDashboard`.
 
-## `AdminDashboard.jsx` 🟡 (container)
-Tab routing + state petugas + modal tambah petugas.
+## `AdminDashboard.jsx` ✅ (container)
+Tab routing + data petugas/riwayat + modal tambah petugas.
 - Props: `user`, `onLogout`.
-- State: `officers` (seed mock), `activeTab` (dashboard/assignment/visitor),
-  `showAddOfficer`, `newOfficer`.
-- Handlers: `handleAddOfficer`, `toggleOfficer`.
-- ⚠️ **Fase C:** ganti ke `api.getOfficers/addOfficer/updateOfficer`.
+- `load()` memuat `api.getOfficers()` + `api.getHistory({})` saat mount; state
+  `loading`/`error`/`busy`.
+- Aksi lewat helper `run(fn, onDone)` → panggil `api.*` → **muat ulang**:
+  `handleAddOfficer` (`api.addOfficer`), `toggleOfficer(officer)` (`api.updateOfficer`
+  dengan `officer_id` & status berlawanan).
 
 ## `AdminSidebar.jsx`
 Navigasi gelap 3 tab.
@@ -17,14 +18,15 @@ Navigasi gelap 3 tab.
 ## Tab
 | File | Props | Fungsi |
 |---|---|---|
-| `DashboardOverviewTab.jsx` 🟡 | — | Kartu metrik + grafik tren (bar) & distribusi (pie) via recharts. Angka mock; ganti `api.getDashboardStats`. |
-| `OfficerAssignmentTab.jsx` | `officers`, `onAdd()`, `onToggle(id)` | Kartu petugas + lokasi + aktif/nonaktif. |
-| `VisitorTimelineTab.jsx` | `visits` | Pencarian (fungsional) + kartu visitor expandable → timeline kunjungan. |
+| `DashboardOverviewTab.jsx` ✅ | — | Memuat `api.getDashboardStats` (loading/error); kartu metrik + grafik tren (bar) & distribusi (pie) via recharts; empty state bila data kosong. |
+| `OfficerAssignmentTab.jsx` | `officers`, `onAdd()`, `onToggle(officer)` | Kartu petugas + lokasi + aktif/nonaktif (mengirim objek officer agar `officer_id` terbawa). |
+| `VisitorTimelineTab.jsx` | `visits` | Pencarian (fungsional) + kartu visitor expandable → timeline; avatar via `RemotePhoto`. |
 
 ## Modal
 | File | Props | Fungsi |
 |---|---|---|
-| `AddOfficerModal.jsx` | `isOpen`, `value`, `setValue`, `onSave`, `onClose` | Tambah petugas (nama/email wajib, lokasi dari `LOCATIONS`). |
+| `AddOfficerModal.jsx` | `isOpen`, `value`, `setValue`, `onSave`, `onClose`, `busy` | Tambah petugas (nama/email wajib, lokasi dari `LOCATIONS`). |
 
-> **Catatan:** `VisitorTimelineTab` mengelompokkan `visits` per nama & mengurutkan
-> terbaru dulu (useMemo). Saat backend siap, ganti dengan `api.getVisitorTimeline`.
+> **Catatan:** `VisitorTimelineTab` menerima riwayat ter-adapt (flat) lalu
+> mengelompokkan per nama & mengurutkan terbaru dulu (useMemo). Alternatif backend:
+> `api.getVisitorTimeline` (sudah mengelompokkan di server).

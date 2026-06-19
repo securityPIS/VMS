@@ -31,21 +31,28 @@ web/
 4. **Admin** → `AdminDashboard`.
 
 ## Mode Mock vs Backend
-- Saat ini **MODE MOCK**: data dari `src/lib/mockData.js`, state dikelola lokal di
-  tiap container (`SecurityDashboard`, `AdminDashboard`). Aksi (check-in, dll.)
-  hanya mengubah state di memori (hilang saat refresh).
-- **Menyambung backend** (Fase C): isi `web/.env` (`VITE_APPS_SCRIPT_URL`,
-  `VITE_API_SECRET`) lalu ganti pemanggilan state lokal dengan `api.*` di
-  `src/lib/api.js`. Tambahkan loading & error state.
+Komponen **selalu** memanggil `api.*` (lib/api.js) — satu jalur data, dua mode:
+- **MODE BACKEND** (`VITE_APPS_SCRIPT_URL` terisi): `api.*` POST ke Apps Script;
+  respons dinormalisasi ke bentuk frontend via `lib/adapters.js`. Foto privat
+  dimuat lewat `api.getPhoto` (komponen `RemotePhoto`).
+- **MODE MOCK** (URL kosong, otomatis): `api.*` membaca/menulis **store di memori**
+  (salinan `mockData.js`) sehingga semua alur (check-in, registrasi paket, submit
+  kunjungan, dll.) tetap berfungsi tanpa backend. Perubahan hilang saat refresh.
 
-## Hal yang masih simulasi (perlu diganti saat go-live)
-| Area | Sekarang | Target |
+Container (`SecurityDashboard`, `AdminDashboard`) memuat data via `api.*` saat
+mount, memanggil `api.*` untuk tiap aksi lalu **memuat ulang**, dengan state
+loading & error. Untuk menyambung backend cukup isi `web/.env`
+(`VITE_APPS_SCRIPT_URL`, `VITE_API_SECRET`) — tanpa ubah komponen.
+
+## Hal yang masih simulasi / sisa go-live
+| Area | Status | Catatan |
 |---|---|---|
-| Login | Tombol pilih peran | Google OAuth + `getRole` |
-| Foto KTP/Selfie/Paket | Set boolean | Kamera (`capture="user"`) + kompres + upload Drive |
-| Data | Mock lokal | Fetch dari Apps Script |
-| Status tamu | Statis | Polling/auto-refresh |
-| Validasi kartu | Tidak ada | Cek duplikat kartu aktif (FR-10) |
+| Data (kunjungan, paket, petugas, statistik) | ✅ wired | Lewat `api.*` (mock atau Apps Script). |
+| Foto KTP/Selfie/Paket | ✅ wired | `PhotoCapture` (kamera+kompres) → `api.uploadPhoto`; tampil via `RemotePhoto`. |
+| Status tamu | ✅ wired | Polling `api.getVisitStatus` tiap 5 dtk sampai status final. |
+| Validasi kartu duplikat (FR-10) | ✅ wired | Ditegakkan backend `checkIn` (& store mock). |
+| Login Google | 🟡 | Alur `getRole` jalan; butuh `VITE_GOOGLE_CLIENT_ID` agar tombol Google nyata (panel demo dipakai saat mock). |
+| Enforcement lokasi petugas (NFR-08) | 🟡 | `actor_email` dikirim; backend menegakkan bila identitas terverifikasi (TODO token). |
 
 ## Menjalankan
 ```bash

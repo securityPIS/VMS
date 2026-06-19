@@ -4,15 +4,17 @@ import Button from '../../components/Button';
 import InputField from '../../components/InputField';
 import { LOCATIONS } from '../../lib/constants';
 
-const AddOfficerModal = ({ isOpen, value, setValue, onSave, onClose }) => (
+const AddOfficerModal = ({ isOpen, value, setValue, onSave, onClose, busy }) => (
   <ModalBase
     isOpen={isOpen}
     onClose={onClose}
     title="Tambah Petugas Baru"
     footer={
       <>
-        <Button variant="text" onClick={onClose}>Batal</Button>
-        <Button variant="filled" onClick={onSave} disabled={!value.name || !value.email}>Simpan Data</Button>
+        <Button variant="text" onClick={onClose} disabled={busy}>Batal</Button>
+        <Button variant="filled" onClick={onSave} disabled={!value.name || !value.email || busy}>
+          {busy ? 'Menyimpan…' : 'Simpan Data'}
+        </Button>
       </>
     }
   >

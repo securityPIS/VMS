@@ -22,7 +22,7 @@ React (Vercel) ──POST text/plain {action, secret, ...}──► doPost (Code
 | `sheets.js` | Helper Spreadsheet: `readRows`, `appendRow`, `updateCells`, `stripRow`, `uuid`, `shortId`. |
 | `auth.js` | `verifySecret` (NFR-05), `getRole`, `assertSecurityAt` (NFR-08), helper email/role. |
 | `visitors.js` | `getVisitorByEmail`, `submitVisit` (buat Visitor + Visit PENDING). |
-| `visits.js` | `getPendingVisits`, `getActiveVisits`, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`. |
+| `visits.js` | `getPendingVisits`, `getActiveVisits`, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `enrichVisits` (join `asal`+`ktp_photo_url` dari Visitors). |
 | `packages.js` | `addPackage`, `getPackages`, `pickupPackage`. |
 | `officers.js` | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer` (whitelist security). |
 | `analytics.js` | `getDashboardStats` (metrik + weekly/dept), `getVisitorTimeline`. |
@@ -54,6 +54,7 @@ Request: `{ action, secret, ...payload }`. Berikut payload & hasil utama:
 | `checkIn` | `visit_id, card_number` | `{ visit_id, status }` |
 | `rejectVisit` | `visit_id, reason` | `{ visit_id, status }` (+ email tamu) |
 | `checkOut` | `visit_id` | `{ visit_id, status }` |
+| `getVisitStatus` | `visit_id` | `{ status, reject_reason, tujuan, nama }` (polling layar tamu) |
 | `addPackage` | `sender, recipient, type?, photo_url?, location` | `{ package_id, status }` |
 | `getPackages` | `status?, location?` | `[package…]` |
 | `pickupPackage` | `package_id` | `{ package_id, status }` |

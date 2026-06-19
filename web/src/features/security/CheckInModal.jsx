@@ -4,15 +4,17 @@ import ModalBase from '../../components/ModalBase';
 import Button from '../../components/Button';
 import InputField from '../../components/InputField';
 
-const CheckInModal = ({ visit, cardNumber, setCardNumber, onConfirm, onClose }) => (
+const CheckInModal = ({ visit, cardNumber, setCardNumber, onConfirm, onClose, busy }) => (
   <ModalBase
     isOpen={!!visit}
     onClose={onClose}
     title="Check-in Visitor"
     footer={
       <>
-        <Button variant="text" onClick={onClose}>Batal</Button>
-        <Button variant="success" onClick={onConfirm} disabled={!cardNumber}>Konfirmasi Check-in</Button>
+        <Button variant="text" onClick={onClose} disabled={busy}>Batal</Button>
+        <Button variant="success" onClick={onConfirm} disabled={!cardNumber || busy}>
+          {busy ? 'Memproses…' : 'Konfirmasi Check-in'}
+        </Button>
       </>
     }
   >

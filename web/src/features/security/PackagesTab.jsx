@@ -1,6 +1,7 @@
 // Tab Paket & Kiriman: tabel paket + registrasi + tandai diambil (PRD 3.5, UIUX 5.10).
 import { Plus, Package } from 'lucide-react';
 import Button from '../../components/Button';
+import RemotePhoto from '../../components/RemotePhoto';
 
 const PackagesTab = ({ packages, onAdd, onPickup }) => (
   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
@@ -32,7 +33,7 @@ const PackagesTab = ({ packages, onAdd, onPickup }) => (
                 <td className="p-5 pl-6">
                   <div className="flex items-center gap-4">
                     {p.photo ? (
-                      <img src={p.photo} alt="Paket" className="w-12 h-12 rounded-[12px] object-cover shadow-sm hidden sm:block" />
+                      <RemotePhoto refId={p.photo} alt="Paket" className="w-12 h-12 rounded-[12px] object-cover shadow-sm hidden sm:block" />
                     ) : (
                       <div className="w-12 h-12 rounded-[12px] bg-[#F4F2F6] border border-[#EAE7EC] flex items-center justify-center text-[#74777F] hidden sm:flex">
                         <Package size={20} />

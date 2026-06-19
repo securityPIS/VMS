@@ -1,20 +1,21 @@
-// Modal Registrasi Paket masuk (UIUX 5.11). Foto barang opsional.
-// TODO integrasi: ganti tombol foto dengan capture/upload via api.uploadPhoto.
-import { Camera, CheckCircle } from 'lucide-react';
+// Modal Registrasi Paket masuk (UIUX 5.11). Foto barang opsional (kamera + unggah).
 import ModalBase from '../../components/ModalBase';
 import Button from '../../components/Button';
 import InputField from '../../components/InputField';
+import PhotoCapture from '../../components/PhotoCapture';
 import { PACKAGE_TYPES } from '../../lib/constants';
 
-const AddPackageModal = ({ isOpen, value, setValue, photo, setPhoto, onSave, onClose }) => (
+const AddPackageModal = ({ isOpen, value, setValue, photo, setPhoto, onSave, onClose, busy }) => (
   <ModalBase
     isOpen={isOpen}
     onClose={onClose}
     title="Registrasi Paket Masuk"
     footer={
       <>
-        <Button variant="text" onClick={onClose}>Batal</Button>
-        <Button variant="filled" onClick={onSave} disabled={!value.sender || !value.recipient}>Simpan Paket</Button>
+        <Button variant="text" onClick={onClose} disabled={busy}>Batal</Button>
+        <Button variant="filled" onClick={onSave} disabled={!value.sender || !value.recipient || busy}>
+          {busy ? 'Menyimpan…' : 'Simpan Paket'}
+        </Button>
       </>
     }
   >
@@ -43,19 +44,7 @@ const AddPackageModal = ({ isOpen, value, setValue, photo, setPhoto, onSave, onC
           ))}
         </select>
       </div>
-      <div className="border border-[#74777F]/30 border-dashed p-4 rounded-[16px] text-center bg-[#F4F2F6] mt-4">
-        <p className="text-sm font-medium text-[#1A1B1E] mb-2">Foto Barang / Resi (Opsional)</p>
-        {photo ? (
-          <div className="flex flex-col items-center">
-            <CheckCircle className="text-[#ADC52D] mb-1" size={28} />
-            <span className="text-xs text-[#44474E]">Foto tersimpan</span>
-          </div>
-        ) : (
-          <Button type="button" variant="tonal" onClick={() => setPhoto(true)} className="w-full">
-            <Camera size={18} /> Ambil Foto Paket
-          </Button>
-        )}
-      </div>
+      <PhotoCapture label="Foto Barang / Resi (Opsional)" value={photo} onChange={setPhoto} capture="environment" />
     </div>
   </ModalBase>
 );

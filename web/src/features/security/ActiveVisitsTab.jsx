@@ -1,5 +1,6 @@
 // Tab Tamu Aktif: tabel tamu CHECKED_IN + tombol Check-out (UIUX 5.8).
 import Button from '../../components/Button';
+import RemotePhoto from '../../components/RemotePhoto';
 
 const ActiveVisitsTab = ({ visits, onCheckout }) => (
   <div className="bg-[#FDFBFF] rounded-[28px] shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 border border-[#EAE7EC]">
@@ -20,7 +21,7 @@ const ActiveVisitsTab = ({ visits, onCheckout }) => (
               <td className="p-5 pl-6">
                 <div className="flex items-center gap-4">
                   {v.selfiePhoto && (
-                    <img src={v.selfiePhoto} alt="Selfie" className="w-12 h-12 rounded-full object-cover shadow-sm hidden lg:block border border-[#EAE7EC]" />
+                    <RemotePhoto refId={v.selfiePhoto} alt="Selfie" className="w-12 h-12 rounded-full object-cover shadow-sm hidden lg:block border border-[#EAE7EC]" />
                   )}
                   <div>
                     <div className="font-medium text-[#1A1B1E] text-base">{v.name}</div>

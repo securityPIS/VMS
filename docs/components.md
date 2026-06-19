@@ -27,3 +27,17 @@ Pill status kunjungan.
 Kerangka modal (overlay gelap + kartu).
 - Props: `isOpen`, `onClose`, `title`, `children` (body), `footer` (tombol aksi).
 - Klik overlay menutup; klik isi tidak menutup (stopPropagation).
+
+## `RemotePhoto.jsx`
+Menampilkan foto dari sebuah **ref** yang bisa berupa:
+- URL langsung (`http(s):`/`data:`) → dipasang apa adanya (mode mock).
+- id file Drive privat → diambil base64 via `api.getPhoto` (mode backend, di-cache).
+- Props: `refId`, `alt`, `className`. Mengembalikan `null` bila ref kosong/gagal
+  (pemanggil boleh menyiapkan placeholder sendiri).
+
+## `PhotoCapture.jsx`
+Kontrol ambil foto (kamera di mobile via atribut `capture`).
+- Props: `label`, `value` (data URL atau `''`), `onChange(dataUrl)`, `capture`
+  (`'user'` selfie / `'environment'` KTP/paket).
+- Membaca berkas → **kompres** ke JPEG (maks sisi 1280px) → data URL base64; tampil
+  pratinjau + "Ambil ulang". Hasilnya diunggah pemanggil via `api.uploadPhoto`.

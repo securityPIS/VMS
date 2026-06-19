@@ -3,17 +3,38 @@
 
 function getPendingVisits(data) {
   assertSecurityAt(data, data.location);
-  return filterVisits(VISIT_STATUS.PENDING, data.location).map(stripRow);
+  return enrichVisits(filterVisits(VISIT_STATUS.PENDING, data.location));
 }
 
 function getActiveVisits(data) {
   assertSecurityAt(data, data.location);
-  return filterVisits(VISIT_STATUS.CHECKED_IN, data.location).map(stripRow);
+  return enrichVisits(filterVisits(VISIT_STATUS.CHECKED_IN, data.location));
 }
 
 function filterVisits(status, location) {
   return readRows(SHEETS.VISITS).filter((v) =>
     v.status === status && (!location || normEmail(v.location) === normEmail(location)));
+}
+
+// Gabungkan data master Visitor (asal + foto KTP) ke tiap baris kunjungan agar
+// kartu antrean/riwayat di frontend bisa menampilkan instansi & foto verifikasi.
+function enrichVisits(rows) {
+  const byId = {};
+  readRows(SHEETS.VISITORS).forEach((v) => { byId[v.visitor_id] = v; });
+  return rows.map((r) => {
+    const o = stripRow(r);
+    const v = byId[r.visitor_id];
+    o.asal = v ? v.asal : '';
+    o.ktp_photo_url = v ? v.ktp_photo_url : '';
+    return o;
+  });
+}
+
+// Status satu kunjungan (untuk polling layar tamu). Tanpa enforcement lokasi —
+// hanya butuh secret + visit_id yang valid.
+function getVisitStatus(data) {
+  const row = findVisitRow(data.visit_id);
+  return { status: row.status, reject_reason: row.reject_reason || '', tujuan: row.tujuan, nama: row.nama };
 }
 
 // Check-in: validasi PENDING + nomor kartu wajib & unik antar tamu CHECKED_IN (FR-10).
@@ -64,7 +85,7 @@ function getHistory(data) {
   if (data.location) rows = rows.filter((v) => normEmail(v.location) === normEmail(data.location));
   if (data.from) rows = rows.filter((v) => v.created_at && new Date(v.created_at) >= new Date(data.from));
   if (data.to) rows = rows.filter((v) => v.created_at && new Date(v.created_at) <= new Date(data.to));
-  return rows.map(stripRow);
+  return enrichVisits(rows);
 }
 
 function findVisitRow(visitId) {

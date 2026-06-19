@@ -2,15 +2,17 @@
 import ModalBase from '../../components/ModalBase';
 import Button from '../../components/Button';
 
-const RejectModal = ({ visit, rejectReason, setRejectReason, onConfirm, onClose }) => (
+const RejectModal = ({ visit, rejectReason, setRejectReason, onConfirm, onClose, busy }) => (
   <ModalBase
     isOpen={!!visit}
     onClose={onClose}
     title="Tolak Kunjungan"
     footer={
       <>
-        <Button variant="text" onClick={onClose}>Batal</Button>
-        <Button variant="danger" onClick={onConfirm} disabled={!rejectReason}>Konfirmasi Tolak</Button>
+        <Button variant="text" onClick={onClose} disabled={busy}>Batal</Button>
+        <Button variant="danger" onClick={onConfirm} disabled={!rejectReason || busy}>
+          {busy ? 'Memproses…' : 'Konfirmasi Tolak'}
+        </Button>
       </>
     }
   >

@@ -35,6 +35,7 @@ function dispatch(action, data) {
     case 'checkIn': return checkIn(data);
     case 'rejectVisit': return rejectVisit(data);
     case 'checkOut': return checkOut(data);
+    case 'getVisitStatus': return getVisitStatus(data);
     // Security — paket
     case 'addPackage': return addPackage(data);
     case 'getPackages': return getPackages(data);

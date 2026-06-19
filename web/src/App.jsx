@@ -12,7 +12,8 @@ const App = () => {
   const [visitStatus, setVisitStatus] = useState(null);
 
   const handleLogin = (userData) => setUser(userData);
-  const handleVisitorSubmit = (formData) => setVisitStatus({ status: 'PENDING', tujuan: formData.tujuan });
+  // VisitorFormScreen sudah mengirim ke backend & meneruskan { visitId, status, tujuan }.
+  const handleVisitorSubmit = (result) => setVisitStatus(result);
   const handleLogout = () => {
     setUser(null);
     setVisitStatus(null);

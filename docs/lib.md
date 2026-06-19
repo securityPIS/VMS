@@ -11,7 +11,8 @@ Konstanta terpusat agar tidak ada "magic value" tersebar.
 - `timeID(date)` — format jam `HH:mm` lokal Indonesia.
 
 ## `mockData.js` 🟡 (dev only)
-Data dummy untuk menjalankan UI tanpa backend. **Jangan dipakai di produksi.**
+Data dummy untuk menjalankan UI tanpa backend; menjadi **seed store di memori**
+yang dikelola `api.js` saat MODE MOCK. **Jangan dipakai di produksi.**
 - `MOCK_VISITS` — kunjungan contoh (punya `location`, foto, status).
 - `MOCK_PACKAGES` — paket contoh.
 - `MOCK_SECURITY_OFFICERS` — petugas contoh (id, nama, email, lokasi, status).
@@ -31,19 +32,24 @@ Login satu tombol via **Google Identity Services**.
 - ⚠️ Butuh OAuth Client ID (Google Cloud Console). Bila kosong → throw error jelas;
   di mode mock, `LoginScreen` melewati GIS dan pakai email demo.
 
-## `api.js` 🟡 (seam backend)
+## `api.js` ✅ (lapisan data tunggal)
 Satu-satunya tempat memanggil Apps Script. Komponen **tidak** memanggil `fetch`
-langsung — selalu lewat `api.*`.
-- Membaca `VITE_APPS_SCRIPT_URL` & `VITE_API_SECRET` dari env.
-- `USE_MOCK` true bila URL kosong → `post()` melempar error informatif.
-- `post(action, payload)` — POST `text/plain` (hindari CORS preflight Apps Script),
-  parse JSON, lempar bila `data.error`.
-- Objek `api` memetakan tiap endpoint PRD §9 (getVisitorByEmail, submitVisit,
-  uploadPhoto, getPendingVisits, checkIn, rejectVisit, checkOut, addPackage,
-  getPackages, pickupPackage, getDashboardStats, getVisitorTimeline, getOfficers,
-  addOfficer, updateOfficer, getLocations, getRole, getHistory).
-- `getRole(email)` **mock-aware**: di mode mock diselesaikan lokal via
-  `resolveRoleFromEmail`; di produksi memanggil endpoint `getRole`.
+langsung — selalu lewat `api.*`. Dua mode transparan ke pemanggil:
+- **Backend** (`VITE_APPS_SCRIPT_URL` terisi): `post(action, payload)` POST
+  `text/plain` (hindari CORS preflight), parse JSON, lempar bila `data.error`.
+  Respons read dipetakan lewat `adapters.js`.
+- **Mock** (`USE_MOCK`, URL kosong): membaca/menulis **store di memori** (salinan
+  `mockData`) — read mengembalikan data, mutation benar-benar mengubah store
+  (mis. cek kartu duplikat) lalu container memuat ulang. Tidak melempar.
+- `getPhoto(ref)` — resolusi foto: URL langsung (mock) atau base64 via
+  `doGet?action=getPhoto` (backend, di-cache). Dipakai `RemotePhoto`.
+- Method memetakan tiap endpoint PRD §9 + `getVisitStatus`. Aksi security
+  menerima `actorEmail`/`location` (dikirim sebagai `actor_email` untuk NFR-08).
+- `getRole(email)` **mock-aware** (lokal via `resolveRoleFromEmail` saat mock).
 
-**TODO Fase C:** arahkan container memanggil `api.*`, tambah loading/error,
-dan (opsional) mode mock yang mengembalikan `mockData` agar dev tetap jalan.
+## `adapters.js` ✅
+Pure functions yang menormalkan respons backend ke bentuk komponen:
+- `splitDateTime(value)` → `{ date: 'YYYY-MM-DD', time: 'HH:mm' }`.
+- `adaptVisit(row)` → `{ id, name, asal, cardNumber, selfiePhoto, rejectReason,
+  date, time, timeOut, … }` (snake_case → camelCase, datetime dipisah).
+- `adaptPackage(row)` → `{ id, sender, recipient, photo, date, time, … }`.

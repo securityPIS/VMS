@@ -1,24 +1,66 @@
 // Form registrasi tamu baru / reservasi tamu lama (PRD 3.1-3.2, UIUX 5.2-5.3).
-// CATATAN: tombol foto masih SIMULASI (set boolean). Saat integrasi, ganti
-// dengan capture kamera (capture="user") + kompres + upload via api.uploadPhoto.
-import { useState } from 'react';
-import { Users, MapPin, Camera, CheckCircle } from 'lucide-react';
+// Foto KTP/selfie ditangkap via kamera (PhotoCapture) lalu diunggah ke backend
+// (api.uploadPhoto) sebelum submit kunjungan (api.submitVisit).
+import { useEffect, useState } from 'react';
+import { Users, MapPin, CheckCircle } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
+import PhotoCapture from '../components/PhotoCapture';
+import { api } from '../lib/api';
+import { LOCATIONS } from '../lib/constants';
 
 const VisitorFormScreen = ({ user, onSubmit }) => {
   const isReturning = user.type === 'returning';
   const [formData, setFormData] = useState({
-    name: user.name, ktp: '', asal: user.asal || '', tujuan: '', keperluan: '', consent: false,
+    name: user.name, ktp: '', asal: user.asal || '', tujuan: '', keperluan: '', location: '', consent: false,
   });
-  const [ktpPhoto, setKtpPhoto] = useState(false);
-  const [selfiePhoto, setSelfiePhoto] = useState(false);
+  const [ktpPhoto, setKtpPhoto] = useState('');       // data URL atau ''
+  const [selfiePhoto, setSelfiePhoto] = useState(''); // data URL atau ''
+  const [locations, setLocations] = useState(LOCATIONS);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState('');
+
+  // Lokasi/gerbang kedatangan — agar kunjungan masuk antrean petugas yang tepat.
+  useEffect(() => {
+    let alive = true;
+    api.getLocations()
+      .then((list) => { if (alive && list && list.length) setLocations(list.map((l) => l.name)); })
+      .catch(() => { /* fallback ke LOCATIONS */ });
+    return () => { alive = false; };
+  }, []);
 
   const isFormValid = isReturning
-    ? formData.tujuan && formData.keperluan && selfiePhoto && formData.consent
+    ? formData.tujuan && formData.keperluan && formData.location && selfiePhoto && formData.consent
     : formData.name && formData.ktp.length === 16 && formData.asal && formData.tujuan &&
-      formData.keperluan && ktpPhoto && selfiePhoto && formData.consent;
+      formData.keperluan && formData.location && ktpPhoto && selfiePhoto && formData.consent;
+
+  const handleSubmit = async () => {
+    setError('');
+    setSubmitting(true);
+    try {
+      let selfieRef = '';
+      let ktpRef = '';
+      if (selfiePhoto) selfieRef = (await api.uploadPhoto(selfiePhoto, 'selfie', user.email)).id;
+      if (!isReturning && ktpPhoto) ktpRef = (await api.uploadPhoto(ktpPhoto, 'ktp', user.email)).id;
+
+      const res = await api.submitVisit({
+        email: user.email,
+        name: formData.name,
+        ktp: formData.ktp,
+        asal: formData.asal,
+        tujuan: formData.tujuan,
+        keperluan: formData.keperluan,
+        location: formData.location,
+        selfie_url: selfieRef,
+        ktp_photo_url: ktpRef,
+      });
+      onSubmit({ visitId: res.visit_id, status: res.status || 'PENDING', tujuan: formData.tujuan });
+    } catch (err) {
+      setError(err.message || 'Gagal mengirim registrasi. Coba lagi.');
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#F4F2F6] p-4 md:py-8 flex justify-center">
@@ -40,20 +82,7 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
               <InputField label="Nama Lengkap" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
               <InputField label="Nomor KTP (16 Digit)" type="number" placeholder="Contoh: 3171234567890123" value={formData.ktp} onChange={(e) => setFormData({ ...formData, ktp: e.target.value })} />
               <InputField label="Asal / Instansi" placeholder="Darimana Anda berasal" value={formData.asal} onChange={(e) => setFormData({ ...formData, asal: e.target.value })} />
-
-              <div className="border border-[#74777F]/30 border-dashed p-4 rounded-[16px] text-center bg-[#F4F2F6]">
-                <p className="text-sm font-medium text-[#1A1B1E] mb-2">Foto KTP Asli</p>
-                {ktpPhoto ? (
-                  <div className="flex flex-col items-center">
-                    <CheckCircle className="text-[#ADC52D] mb-1" size={28} />
-                    <span className="text-xs text-[#44474E]">Foto KTP tersimpan</span>
-                  </div>
-                ) : (
-                  <Button type="button" variant="tonal" onClick={() => setKtpPhoto(true)} className="w-full py-2.5">
-                    <Camera size={18} /> Ambil Foto KTP
-                  </Button>
-                )}
-              </div>
+              <PhotoCapture label="Foto KTP Asli" value={ktpPhoto} onChange={setKtpPhoto} capture="environment" />
             </section>
           )}
 
@@ -61,6 +90,19 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
             <h2 className="text-lg font-medium text-[#1A1B1E] flex items-center gap-2 border-b border-[#EAE7EC] pb-2">
               <MapPin size={20} className="text-[#3C6DB2]" /> Detail Kunjungan
             </h2>
+            <div className="w-full">
+              <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Lokasi / Gerbang Kedatangan</label>
+              <select
+                className="w-full px-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#3C6DB2] text-[#1A1B1E]"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              >
+                <option value="" disabled>Pilih lokasi kedatangan…</option>
+                {locations.map((loc) => (
+                  <option key={loc} value={loc}>{loc}</option>
+                ))}
+              </select>
+            </div>
             <InputField label="Orang yang Dituju" placeholder="Nama karyawan / departemen" value={formData.tujuan} onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })} />
             <div className="w-full">
               <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Keperluan Kunjungan</label>
@@ -71,20 +113,7 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
                 onChange={(e) => setFormData({ ...formData, keperluan: e.target.value })}
               />
             </div>
-
-            <div className="border border-[#74777F]/30 border-dashed p-4 rounded-[16px] text-center bg-[#F4F2F6]">
-              <p className="text-sm font-medium text-[#1A1B1E] mb-2">Verifikasi Wajah</p>
-              {selfiePhoto ? (
-                <div className="flex flex-col items-center">
-                  <CheckCircle className="text-[#ADC52D] mb-1" size={28} />
-                  <span className="text-xs text-[#44474E]">Foto wajah tersimpan</span>
-                </div>
-              ) : (
-                <Button type="button" variant="tonal" onClick={() => setSelfiePhoto(true)} className="w-full py-2.5">
-                  <Camera size={18} /> Ambil Selfie
-                </Button>
-              )}
-            </div>
+            <PhotoCapture label="Verifikasi Wajah (Selfie)" value={selfiePhoto} onChange={setSelfiePhoto} capture="user" />
           </section>
 
           <section className="bg-[#E6F893]/30 p-4 rounded-[16px] border border-[#E6F893]">
@@ -98,8 +127,19 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
             </label>
           </section>
 
-          <Button variant="filled" className="w-full h-14 text-base" disabled={!isFormValid} onClick={() => onSubmit(formData)}>
-            {isReturning ? 'Kirim Reservasi Kunjungan' : 'Kirim Registrasi'}
+          {error && (
+            <div role="alert" className="px-4 py-3 rounded-[12px] bg-[#FBE9EA] border border-[#E9A6AB] text-[#7A1D24] text-sm">
+              {error}
+            </div>
+          )}
+
+          <Button variant="filled" className="w-full h-14 text-base" disabled={!isFormValid || submitting} onClick={handleSubmit}>
+            {submitting ? 'Mengirim…' : (
+              <>
+                <CheckCircle size={20} />
+                {isReturning ? 'Kirim Reservasi Kunjungan' : 'Kirim Registrasi'}
+              </>
+            )}
           </Button>
         </div>
       </div>

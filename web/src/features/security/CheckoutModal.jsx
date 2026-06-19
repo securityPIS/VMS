@@ -3,15 +3,17 @@ import { AlertCircle } from 'lucide-react';
 import ModalBase from '../../components/ModalBase';
 import Button from '../../components/Button';
 
-const CheckoutModal = ({ visit, onConfirm, onClose }) => (
+const CheckoutModal = ({ visit, onConfirm, onClose, busy }) => (
   <ModalBase
     isOpen={!!visit}
     onClose={onClose}
     title="Check-out Visitor"
     footer={
       <>
-        <Button variant="text" onClick={onClose}>Batal</Button>
-        <Button variant="filled" onClick={onConfirm}>Konfirmasi Selesai</Button>
+        <Button variant="text" onClick={onClose} disabled={busy}>Batal</Button>
+        <Button variant="filled" onClick={onConfirm} disabled={busy}>
+          {busy ? 'Memproses…' : 'Konfirmasi Selesai'}
+        </Button>
       </>
     }
   >

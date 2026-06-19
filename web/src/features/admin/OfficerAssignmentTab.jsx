@@ -38,7 +38,7 @@ const OfficerAssignmentTab = ({ officers, onAdd, onToggle }) => (
             <span className={`text-xs font-medium px-3 py-1.5 rounded-full ${officer.status === 'Active' ? 'bg-[#E6F893] text-[#192100]' : 'bg-[#EFEDF1] text-[#44474E]'}`}>
               {officer.status === 'Active' ? 'Aktif Bertugas' : 'Nonaktif'}
             </span>
-            <button onClick={() => onToggle(officer.id)} className="text-sm font-medium text-[#3C6DB2] hover:underline">
+            <button onClick={() => onToggle(officer)} className="text-sm font-medium text-[#3C6DB2] hover:underline">
               {officer.status === 'Active' ? 'Nonaktifkan' : 'Aktifkan'}
             </button>
           </div>

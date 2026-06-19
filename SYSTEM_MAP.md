@@ -21,8 +21,11 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
         └──► MailApp (email reject)
 ```
 
-- **`web/`** — frontend React (sudah di-scaffold). Saat ini berjalan **MODE MOCK**.
-- **`backend/`** — Google Apps Script + skema Spreadsheet (⏳ Fase berikutnya).
+- **`web/`** — frontend React. **Tersambung backend** lewat `lib/api.js`: bila
+  `VITE_APPS_SCRIPT_URL` terisi → memanggil Apps Script nyata; bila kosong →
+  **MODE MOCK** otomatis (store di memori) agar dev/demo tetap jalan.
+- **`backend/`** — Google Apps Script + skema Spreadsheet (kode selesai; deploy
+  butuh `setupSpreadsheet()` sekali oleh pemilik akun).
 - **Dokumen** — PRD, UI/UX, dan `docs/` ada di root.
 
 ---
@@ -36,8 +39,8 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 | `index.txt` | ✅ | Prototype monolith asli (referensi historis; sudah dipecah ke `web/src`). |
 | `SYSTEM_MAP.md` | ✅ | Dokumen ini — index seluruh file. |
 | `docs/` | ✅ | Dokumentasi per-modul (lihat §6). |
-| `web/` | 🟡 | Aplikasi frontend React (lihat §3–§5). |
-| `backend/` | 🟡 | Apps Script + skema Spreadsheet — kode selesai, belum deploy (lihat §6). |
+| `web/` | ✅ | Aplikasi frontend React — tersambung backend via `api.*` (lihat §3–§5). |
+| `backend/` | 🟡 | Apps Script + skema Spreadsheet — kode selesai, butuh `setupSpreadsheet()` (lihat §6). |
 
 ---
 
@@ -61,28 +64,31 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 | `src/App.jsx` | ✅ | Routing berbasis peran (visitor/security/admin) & state kunjungan. |
 | `src/index.css` | ✅ | Direktif Tailwind + base (font, input 16px anti auto-zoom iOS). |
 | `src/lib/constants.js` | ✅ | Lokasi, jenis paket, konfigurasi badge status, helper waktu. |
-| `src/lib/mockData.js` | 🟡 | Data dummy (visits, packages, officers, chart) + direktori peran & `resolveRoleFromEmail`. Dev only. |
-| `src/lib/api.js` | 🟡 | Lapisan integrasi Apps Script (method per endpoint PRD §9). `getRole` mock-aware. |
+| `src/lib/mockData.js` | 🟡 | Data dummy (visits, packages, officers, chart) + direktori peran & `resolveRoleFromEmail`. Dev only (jadi seed store mock di `api.js`). |
+| `src/lib/api.js` | ✅ | Lapisan data tunggal: mode backend (Apps Script + adapters) atau MODE MOCK (store memori). Semua endpoint PRD §9 + `getPhoto`/`getVisitStatus`. |
+| `src/lib/adapters.js` | ✅ | Normalisasi respons backend (snake_case, datetime) → bentuk frontend (camelCase, date/time terpisah). |
 | `src/lib/googleAuth.js` | 🟡 | Login Google (GIS) — `signInWithGoogle()` kembalikan email terverifikasi. Butuh `VITE_GOOGLE_CLIENT_ID`. |
 | `src/components/BrandLogo.jsx` | ✅ | Logo Pertamina + wordmark VMS (signature resmi). |
 | `src/components/Button.jsx` | ✅ | Tombol (6 varian: filled/tonal/outlined/text/danger/success). |
 | `src/components/InputField.jsx` | ✅ | Input teks berlabel. |
 | `src/components/Badge.jsx` | ✅ | Pill status kunjungan (warna+ikon+teks). |
 | `src/components/ModalBase.jsx` | ✅ | Kerangka modal (overlay, judul, body, footer). |
+| `src/components/RemotePhoto.jsx` | ✅ | Tampilkan foto dari ref: URL langsung (mock) atau id Drive privat (backend, via `getPhoto`). |
+| `src/components/PhotoCapture.jsx` | ✅ | Ambil foto kamera + kompres JPEG (data URL) untuk diunggah `api.uploadPhoto`. |
 
 ## 5. Frontend — layar & fitur
 
 ### Screens (`src/screens/`)
 | File | Status | Deskripsi |
 |---|:--:|---|
-| `LoginScreen.jsx` | 🟡 | Satu tombol "Masuk dengan Google"; peran ditentukan sistem dari email (`getRole`). Panel demo muncul saat mode mock. |
-| `VisitorFormScreen.jsx` | 🟡 | Form tamu baru / reservasi tamu lama. Foto masih simulasi boolean. |
-| `VisitorStatusScreen.jsx` | ✅ | Status kunjungan tamu (PENDING/CHECKED_IN/REJECTED). |
+| `LoginScreen.jsx` | 🟡 | Satu tombol "Masuk dengan Google"; peran dari email (`getRole`). Panel demo saat mock. Butuh `VITE_GOOGLE_CLIENT_ID` untuk OAuth nyata. |
+| `VisitorFormScreen.jsx` | ✅ | Form tamu baru/lama: pilih lokasi, foto KTP/selfie (kamera+kompres), submit ke `api.submitVisit`. |
+| `VisitorStatusScreen.jsx` | ✅ | Status kunjungan tamu (PENDING/CHECKED_IN/CHECKED_OUT/REJECTED) + polling `getVisitStatus`. |
 
 ### Fitur Security (`src/features/security/`)
 | File | Status | Deskripsi |
 |---|:--:|---|
-| `SecurityDashboard.jsx` | 🟡 | Container: state + alur + rakit sidebar/tab/modal. |
+| `SecurityDashboard.jsx` | ✅ | Container: muat data via `api.*` (pending/aktif/riwayat/paket), aksi + refetch, loading/error. |
 | `SecuritySidebar.jsx` | ✅ | Navigasi (antrean/aktif/paket/riwayat) + badge jumlah pending. |
 | `QueueTab.jsx` | ✅ | Kartu antrean PENDING + Izinkan Masuk/Tolak. |
 | `ActiveVisitsTab.jsx` | ✅ | Tabel tamu CHECKED_IN + Check-out. |
@@ -96,9 +102,9 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 ### Fitur Admin (`src/features/admin/`)
 | File | Status | Deskripsi |
 |---|:--:|---|
-| `AdminDashboard.jsx` | 🟡 | Container: state petugas + tab routing + modal. |
+| `AdminDashboard.jsx` | ✅ | Container: muat petugas & riwayat via `api.*`, aksi + refetch, loading/error. |
 | `AdminSidebar.jsx` | ✅ | Navigasi gelap (dashboard/assignment/jejak visitor). |
-| `DashboardOverviewTab.jsx` | 🟡 | Kartu metrik + grafik tren (bar) & distribusi (pie). Angka mock. |
+| `DashboardOverviewTab.jsx` | ✅ | Kartu metrik + grafik tren (bar) & distribusi (pie) dari `api.getDashboardStats`. |
 | `OfficerAssignmentTab.jsx` | ✅ | Kartu petugas + aktif/nonaktif + lokasi. |
 | `AddOfficerModal.jsx` | ✅ | Form tambah petugas (nama/email/lokasi). |
 | `VisitorTimelineTab.jsx` | ✅ | Pencarian + kartu visitor expandable jadi timeline. |
@@ -117,7 +123,7 @@ Kode ✅ ditulis (modular, ≤500 baris/file). ⏳ Belum di-deploy/di-setup (lih
 | `backend/sheets.js` | ✅ | Helper Spreadsheet (readRows/appendRow/updateCells/stripRow/id). |
 | `backend/auth.js` | ✅ | `verifySecret` (NFR-05), `getRole`, `assertSecurityAt` (NFR-08). |
 | `backend/visitors.js` | ✅ | `getVisitorByEmail`, `submitVisit`. |
-| `backend/visits.js` | ✅ | Antrean, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`. |
+| `backend/visits.js` | ✅ | Antrean, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `enrichVisits` (join asal/foto KTP). |
 | `backend/packages.js` | ✅ | `addPackage`, `getPackages`, `pickupPackage`. |
 | `backend/officers.js` | ✅ | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer`. |
 | `backend/analytics.js` | ✅ | `getDashboardStats`, `getVisitorTimeline`. |

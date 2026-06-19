@@ -16,17 +16,19 @@ Halaman masuk (UIUX 5.1). **Satu metode auth: "Masuk dengan Google".**
   backend aktif.
 - ⏳ **Sisa go-live:** isi `VITE_GOOGLE_CLIENT_ID` agar tombol Google berfungsi nyata.
 
-## `VisitorFormScreen.jsx` 🟡
+## `VisitorFormScreen.jsx` ✅
 Form registrasi tamu baru / reservasi tamu lama (UIUX 5.2–5.3).
-- Props: `user`, `onSubmit(formData)`.
-- Tamu **baru**: nama, KTP (16 digit), asal, tujuan, keperluan, foto KTP, selfie, consent.
-- Tamu **lama** (`user.type==='returning'`): tujuan, keperluan, selfie, consent (identitas sudah tersimpan).
-- Tombol Kirim disabled sampai field wajib + consent terpenuhi (`isFormValid`).
-- ⚠️ **Masih simulasi:** tombol foto hanya set boolean. Ganti dengan capture kamera
-  + kompres + `api.uploadPhoto`.
+- Props: `user`, `onSubmit({ visitId, status, tujuan })`.
+- Tamu **baru**: nama, KTP (16 digit), asal, **lokasi/gerbang**, tujuan, keperluan,
+  foto KTP, selfie, consent. Tamu **lama**: lokasi, tujuan, keperluan, selfie, consent.
+- Lokasi diisi dari `api.getLocations` (fallback `LOCATIONS`) — menentukan antrean
+  petugas mana yang menerima kunjungan.
+- Foto via `PhotoCapture` (kamera+kompres). Submit: unggah foto (`api.uploadPhoto`)
+  lalu `api.submitVisit`; ada state `submitting` & `error`.
 
-## `VisitorStatusScreen.jsx`
+## `VisitorStatusScreen.jsx` ✅
 Status kunjungan tamu (UIUX 5.4).
-- Props: `statusData` (`{ status, tujuan, rejectReason }`), `onLogout`.
-- Menampilkan PENDING / CHECKED_IN / REJECTED dengan ikon + warna.
-- **TODO:** tambah tampilan `CHECKED_OUT` (ringkasan) + polling status.
+- Props: `statusData` (`{ visitId, status, tujuan, rejectReason }`), `onLogout`.
+- Menampilkan PENDING / CHECKED_IN / CHECKED_OUT / REJECTED dengan ikon + warna.
+- **Polling** `api.getVisitStatus(visitId)` tiap 5 dtk sampai status final
+  (REJECTED/CHECKED_OUT) agar tamu tak perlu reload.

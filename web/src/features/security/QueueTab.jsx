@@ -1,6 +1,7 @@
 // Tab Antrean: kartu tamu PENDING + tombol Izinkan Masuk / Tolak (UIUX 5.5).
 import { CheckCircle, X } from 'lucide-react';
 import Button from '../../components/Button';
+import RemotePhoto from '../../components/RemotePhoto';
 
 const QueueTab = ({ visits, onCheckIn, onReject }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2">
@@ -16,10 +17,10 @@ const QueueTab = ({ visits, onCheckIn, onReject }) => (
 
         <div className="flex gap-3 mb-5">
           {v.ktpPhoto && (
-            <img src={v.ktpPhoto} alt="KTP" className="w-24 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" title="Foto KTP" />
+            <RemotePhoto refId={v.ktpPhoto} alt="KTP" className="w-24 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" />
           )}
           {v.selfiePhoto && (
-            <img src={v.selfiePhoto} alt="Selfie" className="w-16 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" title="Foto Wajah" />
+            <RemotePhoto refId={v.selfiePhoto} alt="Selfie" className="w-16 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" />
           )}
         </div>
 

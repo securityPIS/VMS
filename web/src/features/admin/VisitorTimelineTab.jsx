@@ -3,6 +3,7 @@
 import { useMemo, useState } from 'react';
 import { Search, ChevronRight, MapPin } from 'lucide-react';
 import Badge from '../../components/Badge';
+import RemotePhoto from '../../components/RemotePhoto';
 
 const VisitorTimelineTab = ({ visits }) => {
   const [expandedId, setExpandedId] = useState(null);
@@ -15,7 +16,7 @@ const VisitorTimelineTab = ({ visits }) => {
         map[visit.name] = {
           name: visit.name,
           asal: visit.asal,
-          photo: visit.selfiePhoto || 'https://via.placeholder.com/150',
+          photo: visit.selfiePhoto || '',
           history: [],
         };
       }
@@ -60,7 +61,13 @@ const VisitorTimelineTab = ({ visits }) => {
                 onClick={() => setExpandedId(isExpanded ? null : visitor.name)}
               >
                 <div className="flex items-center gap-5">
-                  <img src={visitor.photo} alt={visitor.name} className="w-16 h-16 rounded-full object-cover border-4 border-[#F4F2F6]" />
+                  {visitor.photo ? (
+                    <RemotePhoto refId={visitor.photo} alt={visitor.name} className="w-16 h-16 rounded-full object-cover border-4 border-[#F4F2F6]" />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-[#D5E3FF] text-[#001B3E] flex items-center justify-center font-medium text-2xl border-4 border-[#F4F2F6]">
+                      {visitor.name.charAt(0)}
+                    </div>
+                  )}
                   <div>
                     <h3 className="text-xl font-medium text-[#1A1B1E]">{visitor.name}</h3>
                     <p className="text-base text-[#74777F] mt-0.5">{visitor.asal}</p>
