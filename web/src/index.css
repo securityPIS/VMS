@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html {
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+/* Ukuran font input minimal 16px agar tidak auto-zoom di iOS (UIUX 3.2) */
+input,
+textarea,
+select {
+  font-size: 16px;
+}
