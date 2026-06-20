@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { timeID } from '../../lib/constants';
 import SecuritySidebar from './SecuritySidebar';
 import QueueTab from './QueueTab';
 import ActiveVisitsTab from './ActiveVisitsTab';
@@ -71,16 +72,18 @@ const SecurityDashboard = ({ user, onLogout }) => {
   const closeCheckIn = () => { setCheckInTarget(null); setCardNumber(''); };
   const closeReject = () => { setRejectTarget(null); setRejectReason(''); };
 
-  // Bungkus aksi: jalankan, tutup modal, muat ulang; tampilkan error bila gagal.
-  const run = async (fn, onDone) => {
+  // Bungkus aksi: jalankan aksi backend lalu terapkan perubahan ke state lokal
+  // (optimistic) — tanpa memuat ulang keempat dataset, agar respons terasa instan.
+  // Bila aksi gagal, sinkron ulang penuh dari backend dan tampilkan error.
+  const run = async (fn, apply) => {
     setBusy(true);
     setError('');
     try {
-      await fn();
-      if (onDone) onDone();
-      await load();
+      const result = await fn();
+      if (apply) apply(result);
     } catch (err) {
       setError(err.message || 'Aksi gagal.');
+      load();
     } finally {
       setBusy(false);
     }
@@ -88,23 +91,55 @@ const SecurityDashboard = ({ user, onLogout }) => {
 
   const handleCheckIn = () => {
     if (!cardNumber) return;
-    run(() => api.checkIn(checkInTarget.id, cardNumber, actor), closeCheckIn);
+    const target = checkInTarget;
+    const card = cardNumber;
+    run(() => api.checkIn(target.id, card, actor), () => {
+      setPending((prev) => prev.filter((x) => x.id !== target.id));
+      setActive((prev) => [{ ...target, status: 'CHECKED_IN', cardNumber: card }, ...prev]);
+      closeCheckIn();
+    });
   };
   const handleReject = () => {
     if (!rejectReason) return;
-    run(() => api.rejectVisit(rejectTarget.id, rejectReason, actor), closeReject);
+    const target = rejectTarget;
+    run(() => api.rejectVisit(target.id, rejectReason, actor), () => {
+      setPending((prev) => prev.filter((x) => x.id !== target.id));
+      closeReject();
+    });
   };
   const handleCheckOut = () => {
-    run(() => api.checkOut(checkoutTarget.id, actor), () => setCheckoutTarget(null));
+    const target = checkoutTarget;
+    run(() => api.checkOut(target.id, actor), () => {
+      setActive((prev) => prev.filter((x) => x.id !== target.id));
+      setCheckoutTarget(null);
+    });
   };
-  const handlePickup = (id) => run(() => api.pickupPackage(id, actor));
+  const handlePickup = (id) =>
+    run(() => api.pickupPackage(id, actor), () => {
+      setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'PICKED_UP' } : p)));
+    });
   const handleAddPackage = () => {
     if (!newPackage.sender || !newPackage.recipient) return;
+    const draft = newPackage;
+    const photo = packagePhoto;
     run(async () => {
       let photoRef = '';
-      if (packagePhoto) photoRef = (await api.uploadPhoto(packagePhoto, 'package', actor)).id;
-      await api.addPackage({ ...newPackage, location: loc, photo_url: photoRef }, actor);
-    }, () => {
+      if (photo) photoRef = (await api.uploadPhoto(photo, 'package', actor)).id;
+      const res = await api.addPackage({ ...draft, location: loc, photo_url: photoRef }, actor);
+      return { ...res, photoRef };
+    }, (res) => {
+      const d = new Date();
+      setPackages((prev) => [{
+        id: res.package_id,
+        sender: draft.sender,
+        recipient: draft.recipient,
+        type: draft.type,
+        status: 'RECEIVED',
+        photo: res.photoRef || null,
+        location: loc,
+        date: d.toLocaleDateString('en-CA'),
+        time: timeID(d),
+      }, ...prev]);
       setShowAddPackage(false);
       setNewPackage({ sender: '', recipient: '', type: 'Dokumen' });
       setPackagePhoto('');

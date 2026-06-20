@@ -39,12 +39,15 @@ function getVisitStatus(data) {
 
 // Check-in: validasi PENDING + nomor kartu wajib & unik antar tamu CHECKED_IN (FR-10).
 function checkIn(data) {
-  const row = findVisitRow(data.visit_id);
+  // Satu kali baca sheet, dipakai untuk cari baris sekaligus cek duplikat kartu.
+  const rows = readRows(SHEETS.VISITS);
+  const row = rows.find((v) => v.visit_id === data.visit_id);
+  if (!row) throw new Error('Kunjungan tidak ditemukan: ' + data.visit_id);
   if (row.status !== VISIT_STATUS.PENDING) throw new Error('Kunjungan bukan status PENDING.');
   const card = String(data.card_number || '').trim();
   if (!card) throw new Error('Nomor kartu wajib diisi.');
 
-  const dup = readRows(SHEETS.VISITS).some((v) =>
+  const dup = rows.some((v) =>
     v.status === VISIT_STATUS.CHECKED_IN && String(v.card_number).trim() === card);
   if (dup) throw new Error('Nomor kartu sedang digunakan tamu lain.');
 

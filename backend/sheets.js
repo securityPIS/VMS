@@ -1,14 +1,24 @@
 // sheets.js — helper akses Spreadsheet tingkat rendah. Tanpa logika bisnis.
 
+// Cache objek Spreadsheet & Sheet selama satu eksekusi. SpreadsheetApp.openById()
+// dan getSheetByName() relatif mahal; satu request bisa menyentuh sheet yang sama
+// berkali-kali, jadi cukup buka sekali.
+let _ssCache = null;
+const _sheetCache = {};
+
 function getSpreadsheet() {
+  if (_ssCache) return _ssCache;
   const id = PROP.getProperty(PROP_KEYS.SPREADSHEET_ID);
   if (!id) throw new Error('SPREADSHEET_ID belum diset. Jalankan setupSpreadsheet() dulu.');
-  return SpreadsheetApp.openById(id);
+  _ssCache = SpreadsheetApp.openById(id);
+  return _ssCache;
 }
 
 function getSheet(name) {
+  if (_sheetCache[name]) return _sheetCache[name];
   const sh = getSpreadsheet().getSheetByName(name);
   if (!sh) throw new Error('Sheet tidak ditemukan: ' + name);
+  _sheetCache[name] = sh;
   return sh;
 }
 
@@ -33,13 +43,25 @@ function appendRow(name, obj) {
 }
 
 // Update sebagian sel pada satu baris (rowNum = nomor baris sheet).
+// Menulis sekali sebagai satu rentang kontigu (1 baca + 1 tulis) alih-alih
+// setValue() per sel — tiap setValue() adalah round-trip terpisah ke Sheets.
 function updateCells(name, rowNum, patch) {
   const sh = getSheet(name);
   const header = HEADERS[name];
+  const cols = Object.keys(patch)
+    .map((key) => header.indexOf(key))
+    .filter((c) => c >= 0);
+  if (!cols.length) return;
+
+  const min = Math.min.apply(null, cols);
+  const max = Math.max.apply(null, cols);
+  const range = sh.getRange(rowNum, min + 1, 1, max - min + 1);
+  const rowVals = range.getValues()[0];
   Object.keys(patch).forEach((key) => {
     const col = header.indexOf(key);
-    if (col >= 0) sh.getRange(rowNum, col + 1).setValue(patch[key]);
+    if (col >= 0) rowVals[col - min] = patch[key];
   });
+  range.setValues([rowVals]);
 }
 
 // Buang field internal `_row` sebelum dikirim sebagai respons.
