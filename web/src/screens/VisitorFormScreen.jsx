@@ -39,10 +39,14 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
     setError('');
     setSubmitting(true);
     try {
-      let selfieRef = '';
-      let ktpRef = '';
-      if (selfiePhoto) selfieRef = (await api.uploadPhoto(selfiePhoto, 'selfie', user.email)).id;
-      if (!isReturning && ktpPhoto) ktpRef = (await api.uploadPhoto(ktpPhoto, 'ktp', user.email)).id;
+      // Selfie & KTP diunggah paralel (tiap upload = round-trip + createFile Drive
+      // yang lambat); keduanya independen, jadi tak perlu berurutan.
+      const [selfieRes, ktpRes] = await Promise.all([
+        selfiePhoto ? api.uploadPhoto(selfiePhoto, 'selfie', user.email) : Promise.resolve({ id: '' }),
+        (!isReturning && ktpPhoto) ? api.uploadPhoto(ktpPhoto, 'ktp', user.email) : Promise.resolve({ id: '' }),
+      ]);
+      const selfieRef = selfieRes.id || '';
+      const ktpRef = ktpRes.id || '';
 
       const res = await api.submitVisit({
         email: user.email,
