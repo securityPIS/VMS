@@ -165,7 +165,7 @@ RECEIVED ──ambil──> PICKED_UP
 - **FR-14** Kartu visitor menjadi tersedia kembali setelah check-out.
 
 ### 5.6 Notifikasi Email
-- **FR-15** Email dikirim via `MailApp`/`GmailApp` pada Apps Script saat reject (dan opsional saat approve).
+- **FR-15** Email dikirim via `MailApp`/`GmailApp` pada Apps Script saat reject dan saat approve/check-in dengan catatan konfirmasi dari petugas.
 
 ### 5.7 Multi-lokasi / Gate
 - **FR-16** Sistem memiliki daftar lokasi/gate (master `Locations`).
@@ -257,6 +257,7 @@ RECEIVED ──ambil──> PICKED_UP
 | `status` | enum | PENDING / CHECKED_IN / CHECKED_OUT / REJECTED |
 | `card_number` | string | Nomor kartu visitor |
 | `reject_reason` | string | Alasan penolakan |
+| `confirm_notes` | string | Catatan konfirmasi dari petugas security untuk email visitor |
 | `security_email` | string | Petugas yang memproses |
 | `created_at` | datetime | Waktu submit |
 | `checkin_at` | datetime | Waktu check-in |
@@ -310,7 +311,7 @@ Semua request melalui `doPost` dengan parameter `action`. Format respons JSON.
 | `getLocations` | Semua | Daftar lokasi/gate aktif | — |
 | `getPendingVisits` | Security | Antrean PENDING (difilter lokasi petugas) | `location` |
 | `getActiveVisits` | Security | Tamu CHECKED_IN (difilter lokasi) | `location` |
-| `checkIn` | Security | Approve + nomor kartu (validasi unik) | `visit_id`, `card_number` |
+| `checkIn` | Security | Approve + nomor kartu + catatan konfirmasi (validasi unik) | `visit_id`, `card_number`, `confirm_notes` |
 | `rejectVisit` | Security | Tolak + alasan + email | `visit_id`, `reason` |
 | `checkOut` | Security | Catat keluar | `visit_id` |
 | `addPackage` | Security | Registrasi paket masuk | `sender`, `recipient`, `type`, `photo_url?`, `location` |
@@ -351,7 +352,7 @@ Semua request melalui `doPost` dengan parameter `action`. Format respons JSON.
 | Pemicu | Penerima | Isi |
 |---|---|---|
 | Reject | Visitor | Pemberitahuan ditolak + **alasan penolakan** |
-| Approve/Check-in (opsional) | Visitor | Konfirmasi kunjungan disetujui |
+| Approve/Check-in | Visitor | Konfirmasi kunjungan disetujui + catatan petugas |
 
 Dikirim menggunakan `MailApp.sendEmail()` di Google Apps Script.
 

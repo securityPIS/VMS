@@ -64,6 +64,7 @@ function submitVisit(data) {
     status: VISIT_STATUS.PENDING,
     card_number: '',
     reject_reason: '',
+    confirm_notes: '',
     security_email: '',
     created_at: now(),
     checkin_at: '',

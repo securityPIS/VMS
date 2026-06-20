@@ -37,6 +37,7 @@ export function adaptVisit(row) {
     status: row.status,
     cardNumber: row.card_number || '',
     rejectReason: row.reject_reason || '',
+    confirmNotes: row.confirm_notes || '',
     selfiePhoto: row.selfie_url || '',
     ktpPhoto: row.ktp_photo_url || '',
     scheduleType,

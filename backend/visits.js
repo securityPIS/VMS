@@ -46,6 +46,8 @@ function checkIn(data) {
   if (row.status !== VISIT_STATUS.PENDING) throw new Error('Kunjungan bukan status PENDING.');
   const card = String(data.card_number || '').trim();
   if (!card) throw new Error('Nomor kartu wajib diisi.');
+  const notes = String(data.confirm_notes || data.notes || '').trim();
+  if (!notes) throw new Error('Catatan konfirmasi wajib diisi.');
 
   const dup = rows.some((v) =>
     v.status === VISIT_STATUS.CHECKED_IN && String(v.card_number).trim() === card);
@@ -54,9 +56,11 @@ function checkIn(data) {
   updateCells(SHEETS.VISITS, row._row, {
     status: VISIT_STATUS.CHECKED_IN,
     card_number: card,
+    confirm_notes: notes,
     security_email: normEmail(data.actor_email),
     checkin_at: now(),
   });
+  sendConfirmEmail(row, notes);                // email.js
   return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.CHECKED_IN };
 }
 

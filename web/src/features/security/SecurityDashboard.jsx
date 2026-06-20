@@ -42,6 +42,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
 
   // Field input modal.
   const [cardNumber, setCardNumber] = useState('');
+  const [confirmNotes, setConfirmNotes] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [newPackage, setNewPackage] = useState({ sender: '', recipient: '', type: 'Dokumen' });
   const [packagePhoto, setPackagePhoto] = useState('');
@@ -69,7 +70,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
 
   useEffect(() => { load(); }, [load]);
 
-  const closeCheckIn = () => { setCheckInTarget(null); setCardNumber(''); };
+  const closeCheckIn = () => { setCheckInTarget(null); setCardNumber(''); setConfirmNotes(''); };
   const closeReject = () => { setRejectTarget(null); setRejectReason(''); };
 
   // Bungkus aksi: jalankan aksi backend lalu terapkan perubahan ke state lokal
@@ -90,16 +91,18 @@ const SecurityDashboard = ({ user, onLogout }) => {
   };
 
   const handleCheckIn = () => {
-    if (!cardNumber) return;
+    if (!cardNumber || !confirmNotes.trim()) return;
     const target = checkInTarget;
-    const card = cardNumber;
+    const card = cardNumber.trim();
+    const notes = confirmNotes.trim();
     const checkedInAt = new Date();
-    run(() => api.checkIn(target.id, card, actor), () => {
+    run(() => api.checkIn(target.id, card, notes, actor), () => {
       setPending((prev) => prev.filter((x) => x.id !== target.id));
       setActive((prev) => [{
         ...target,
         status: 'CHECKED_IN',
         cardNumber: card,
+        confirmNotes: notes,
         checkinAt: checkedInAt.toISOString(),
         checkinDate: dateID(checkedInAt),
         checkinTime: timeID(checkedInAt),
@@ -193,7 +196,16 @@ const SecurityDashboard = ({ user, onLogout }) => {
         )}
       </main>
 
-      <CheckInModal visit={checkInTarget} cardNumber={cardNumber} setCardNumber={setCardNumber} onConfirm={handleCheckIn} onClose={closeCheckIn} busy={busy} />
+      <CheckInModal
+        visit={checkInTarget}
+        cardNumber={cardNumber}
+        setCardNumber={setCardNumber}
+        confirmNotes={confirmNotes}
+        setConfirmNotes={setConfirmNotes}
+        onConfirm={handleCheckIn}
+        onClose={closeCheckIn}
+        busy={busy}
+      />
       <RejectModal visit={rejectTarget} rejectReason={rejectReason} setRejectReason={setRejectReason} onConfirm={handleReject} onClose={closeReject} busy={busy} />
       <CheckoutModal visit={checkoutTarget} onConfirm={handleCheckOut} onClose={() => setCheckoutTarget(null)} busy={busy} />
       <AddPackageModal

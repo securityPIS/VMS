@@ -22,7 +22,7 @@ const SHEETS = {
 const HEADERS = {
   Visitors: ['visitor_id', 'email', 'nama', 'ktp', 'asal', 'ktp_photo_url', 'created_at'],
   Visits: ['visit_id', 'visitor_id', 'email', 'nama', 'keperluan', 'tujuan', 'location',
-    'selfie_url', 'status', 'card_number', 'reject_reason', 'security_email',
+    'selfie_url', 'status', 'card_number', 'reject_reason', 'confirm_notes', 'security_email',
     'created_at', 'checkin_at', 'checkout_at', 'schedule_type', 'scheduled_at'],
   Users: ['email', 'role', 'name', 'officer_id', 'location', 'status'],
   Locations: ['location_id', 'name', 'active'],

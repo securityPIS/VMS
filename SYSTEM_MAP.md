@@ -18,7 +18,7 @@ Browser (React/Vite, di Vercel)
         ▼
 Google Apps Script Web App  ──►  Google Spreadsheet (DB)
         │                         Google Drive (foto)
-        └──► MailApp (email reject)
+        └──► MailApp (email confirm/reject)
 ```
 
 - **`web/`** — frontend React. **Tersambung backend** lewat `lib/api.js`: bila
@@ -123,12 +123,12 @@ Kode ✅ ditulis (modular, ≤500 baris/file). ⏳ Belum di-deploy/di-setup (lih
 | `backend/sheets.js` | ✅ | Helper Spreadsheet (readRows/appendRow/updateCells/stripRow/id). |
 | `backend/auth.js` | ✅ | `verifySecret` (NFR-05), `getRole`, `assertSecurityAt` (NFR-08). |
 | `backend/visitors.js` | ✅ | `getVisitorByEmail`, `submitVisit`. |
-| `backend/visits.js` | ✅ | Antrean, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `enrichVisits` (join asal/foto KTP). |
+| `backend/visits.js` | ✅ | Antrean, `checkIn` + catatan konfirmasi/email, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `enrichVisits` (join asal/foto KTP). |
 | `backend/packages.js` | ✅ | `addPackage`, `getPackages`, `pickupPackage`. |
 | `backend/officers.js` | ✅ | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer`. |
 | `backend/analytics.js` | ✅ | `getDashboardStats`, `getVisitorTimeline`. |
 | `backend/drive.js` | ✅ | `uploadPhoto` (Drive privat) + `servePhoto` (getPhoto ber-secret). |
-| `backend/email.js` | ✅ | `sendRejectEmail` (MailApp). |
+| `backend/email.js` | ✅ | `sendConfirmEmail` dan `sendRejectEmail` (MailApp). |
 | `backend/retention.js` | ✅ | `purgeOldData` + `installRetentionTrigger` (NFR-07, >30 hari). |
 | `backend/setup.js` | ✅ | `setupSpreadsheet()` — inisialisasi sheet/seed/secret/folder. |
 | `backend/appsscript.json` | ✅ | Manifest (V8, webapp Anyone, oauthScopes). |

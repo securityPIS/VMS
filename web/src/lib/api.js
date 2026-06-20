@@ -125,7 +125,7 @@ export const api = {
       store.visits.unshift({
         id, email: data.email, name: data.name || '', asal: data.asal || '',
         keperluan: data.keperluan, tujuan: data.tujuan, location: data.location || '',
-        status: 'PENDING', cardNumber: '', rejectReason: '',
+        status: 'PENDING', cardNumber: '', rejectReason: '', confirmNotes: '',
         selfiePhoto: data.selfie_url || '', ktpPhoto: data.ktp_photo_url || '',
         scheduleType,
         scheduledDate,
@@ -164,10 +164,12 @@ export const api = {
     return sortVisitsNewest((await post('getHistory', filter)).map(adaptVisit));
   },
 
-  checkIn: async (visitId, cardNumber, actorEmail) => {
+  checkIn: async (visitId, cardNumber, confirmNotes, actorEmail) => {
     if (USE_MOCK) {
       const card = String(cardNumber || '').trim();
+      const notes = String(confirmNotes || '').trim();
       if (!card) throw new Error('Nomor kartu wajib diisi.');
+      if (!notes) throw new Error('Catatan konfirmasi wajib diisi.');
       if (store.visits.some((v) => v.status === 'CHECKED_IN' && String(v.cardNumber).trim() === card)) {
         throw new Error('Nomor kartu sedang digunakan tamu lain.');
       }
@@ -175,13 +177,19 @@ export const api = {
       mutateVisit(visitId, {
         status: 'CHECKED_IN',
         cardNumber: card,
+        confirmNotes: notes,
         checkinAt: iso,
         checkinDate: date,
         checkinTime: time,
       });
       return { ok: true };
     }
-    return post('checkIn', { visit_id: visitId, card_number: cardNumber, actor_email: actorEmail });
+    return post('checkIn', {
+      visit_id: visitId,
+      card_number: cardNumber,
+      confirm_notes: confirmNotes,
+      actor_email: actorEmail,
+    });
   },
   rejectVisit: async (visitId, reason, actorEmail) => {
     if (USE_MOCK) {

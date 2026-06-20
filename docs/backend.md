@@ -22,12 +22,12 @@ React (Vercel) ──POST text/plain {action, secret, ...}──► doPost (Code
 | `sheets.js` | Helper Spreadsheet: `readRows`, `appendRow`, `updateCells`, `stripRow`, `uuid`, `shortId`. |
 | `auth.js` | `verifySecret` (NFR-05), `getRole`, `assertSecurityAt` (NFR-08), helper email/role. |
 | `visitors.js` | `getVisitorByEmail`, `submitVisit` (buat Visitor + Visit PENDING). |
-| `visits.js` | `getPendingVisits`, `getActiveVisits`, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `enrichVisits` (join `asal`+`ktp_photo_url` dari Visitors). |
+| `visits.js` | `getPendingVisits`, `getActiveVisits`, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `checkIn` menyimpan `confirm_notes` dan mengirim email konfirmasi; `enrichVisits` (join `asal`+`ktp_photo_url` dari Visitors). |
 | `packages.js` | `addPackage`, `getPackages`, `pickupPackage`. |
 | `officers.js` | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer` (whitelist security). |
 | `analytics.js` | `getDashboardStats` (metrik + weekly/dept), `getVisitorTimeline`. |
 | `drive.js` | `uploadPhoto` (folder privat), `servePhoto` (getPhoto ber-secret). |
-| `email.js` | `sendRejectEmail` (MailApp). |
+| `email.js` | `sendConfirmEmail` dan `sendRejectEmail` (MailApp). |
 | `retention.js` | `purgeOldData` + `installRetentionTrigger` (hapus >30 hari, NFR-07). |
 | `setup.js` | `setupSpreadsheet()` — inisialisasi sekali (sheet, seed, secret, folder). |
 | `appsscript.json` | Manifest: timezone, runtime V8, webapp (Anyone), oauthScopes. |
@@ -51,7 +51,7 @@ Request: `{ action, secret, ...payload }`. Berikut payload & hasil utama:
 | `submitVisit` | `email, name?, ktp?, asal?, tujuan, keperluan, location, ktp_photo_url?, selfie_url?` | `{ visit_id, status }` |
 | `getLocations` | — | `[{ location_id, name }]` |
 | `getPendingVisits` / `getActiveVisits` | `location` | `[visit…]` |
-| `checkIn` | `visit_id, card_number` | `{ visit_id, status }` |
+| `checkIn` | `visit_id, card_number, confirm_notes` | `{ visit_id, status }` (+ email konfirmasi tamu) |
 | `rejectVisit` | `visit_id, reason` | `{ visit_id, status }` (+ email tamu) |
 | `checkOut` | `visit_id` | `{ visit_id, status }` |
 | `getVisitStatus` | `visit_id` | `{ status, reject_reason, tujuan, nama }` (polling layar tamu) |
