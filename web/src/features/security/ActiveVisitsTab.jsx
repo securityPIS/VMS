@@ -24,16 +24,6 @@ const ActiveVisitsTab = ({ visits, onCheckout }) => {
 
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
-      <div className="bg-[#FDFBFF] rounded-[20px] border border-[#EAE7EC] p-4 flex items-center justify-between">
-        <div>
-          <h2 className="text-lg font-normal text-[#1A1B1E]">Tamu Aktif</h2>
-          <p className="text-xs text-[#74777F] mt-0.5">Jumlah tamu aktif saat ini</p>
-        </div>
-        <span className="inline-flex min-w-10 h-10 px-3 items-center justify-center rounded-full bg-[#BA313B] text-white text-sm font-bold">
-          {visits.length}
-        </span>
-      </div>
-
       {visits.length === 0 ? (
         <div className="p-10 text-center text-[#74777F] bg-[#FDFBFF] rounded-[28px] shadow-sm border border-[#EAE7EC]">
           Tidak ada tamu aktif saat ini.
