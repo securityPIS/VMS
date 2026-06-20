@@ -1,11 +1,25 @@
 // Kontrol ambil foto: input file (membuka kamera di mobile via `capture`),
-// dikompres ke JPEG (data URL base64) di sisi klien sebelum diunggah. Nilai yang
-// dikelola caller berupa data URL (string) atau kosong.
+// dikompres ke WebP (fallback JPEG) data URL base64 di sisi klien sebelum
+// diunggah. Nilai yang dikelola caller berupa data URL (string) atau kosong.
 import { useRef, useState } from 'react';
 import { Camera, Loader2 } from 'lucide-react';
 import Button from './Button';
 
-// Kompres gambar: skala sisi terpanjang ke maxSide, encode JPEG → data URL.
+// Deteksi sekali apakah canvas bisa meng-encode WebP. Penting: bila tak didukung
+// (mis. Safari lama), toDataURL('image/webp') diam-diam mengembalikan PNG yang
+// justru jauh lebih besar — jadi kita cek eksplisit lalu fallback ke JPEG.
+let _webpSupport;
+function pickType() {
+  if (_webpSupport === undefined) {
+    const c = document.createElement('canvas');
+    c.width = 1;
+    c.height = 1;
+    _webpSupport = c.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+  }
+  return _webpSupport ? 'image/webp' : 'image/jpeg';
+}
+
+// Kompres gambar: skala sisi terpanjang ke maxSide, encode WebP/JPEG → data URL.
 async function compress(file, maxSide = 1280, quality = 0.8) {
   const dataUrl = await new Promise((resolve, reject) => {
     const r = new FileReader();
@@ -26,7 +40,7 @@ async function compress(file, maxSide = 1280, quality = 0.8) {
   canvas.width = w;
   canvas.height = h;
   canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-  return canvas.toDataURL('image/jpeg', quality);
+  return canvas.toDataURL(pickType(), quality);
 }
 
 const PhotoCapture = ({ label, value, onChange, capture = 'user' }) => {
