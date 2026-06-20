@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
-import { timeID } from '../../lib/constants';
+import { dateID, sortVisitsNewest, timeID } from '../../lib/constants';
 import SecuritySidebar from './SecuritySidebar';
 import QueueTab from './QueueTab';
 import ActiveVisitsTab from './ActiveVisitsTab';
@@ -18,7 +18,7 @@ const TITLES = {
   antrean: 'Antrean Menunggu',
   aktif: 'Tamu Aktif',
   paket: 'Paket & Kiriman Masuk',
-  riwayat: 'Riwayat Kunjungan',
+  riwayat: 'LOG',
 };
 
 const SecurityDashboard = ({ user, onLogout }) => {
@@ -58,7 +58,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
       ]);
       setPending(p);
       setActive(a);
-      setHistory(h);
+      setHistory(sortVisitsNewest(h));
       setPackages(pk);
     } catch (err) {
       setError(err.message || 'Gagal memuat data.');
@@ -93,9 +93,17 @@ const SecurityDashboard = ({ user, onLogout }) => {
     if (!cardNumber) return;
     const target = checkInTarget;
     const card = cardNumber;
+    const checkedInAt = new Date();
     run(() => api.checkIn(target.id, card, actor), () => {
       setPending((prev) => prev.filter((x) => x.id !== target.id));
-      setActive((prev) => [{ ...target, status: 'CHECKED_IN', cardNumber: card }, ...prev]);
+      setActive((prev) => [{
+        ...target,
+        status: 'CHECKED_IN',
+        cardNumber: card,
+        checkinAt: checkedInAt.toISOString(),
+        checkinDate: dateID(checkedInAt),
+        checkinTime: timeID(checkedInAt),
+      }, ...prev]);
       closeCheckIn();
     });
   };
@@ -137,7 +145,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
         status: 'RECEIVED',
         photo: res.photoRef || null,
         location: loc,
-        date: d.toLocaleDateString('en-CA'),
+        date: dateID(d),
         time: timeID(d),
       }, ...prev]);
       setShowAddPackage(false);
@@ -154,6 +162,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         pendingCount={pending.length}
+        activeCount={active.length}
       />
 
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">

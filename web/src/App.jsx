@@ -7,16 +7,44 @@ import VisitorStatusScreen from './screens/VisitorStatusScreen';
 import SecurityDashboard from './features/security/SecurityDashboard';
 import AdminDashboard from './features/admin/AdminDashboard';
 
-const App = () => {
-  const [user, setUser] = useState(null);
-  const [visitStatus, setVisitStatus] = useState(null);
+const SESSION_USER_KEY = 'vms.session.user';
+const SESSION_VISIT_KEY = 'vms.session.visitStatus';
 
-  const handleLogin = (userData) => setUser(userData);
+function readSession(key) {
+  try {
+    return JSON.parse(localStorage.getItem(key) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+function writeSession(key, value) {
+  try {
+    if (value) localStorage.setItem(key, JSON.stringify(value));
+    else localStorage.removeItem(key);
+  } catch {
+    // Storage bisa gagal di mode privat; state React tetap menjadi sumber sesi.
+  }
+}
+
+const App = () => {
+  const [user, setUser] = useState(() => readSession(SESSION_USER_KEY));
+  const [visitStatus, setVisitStatus] = useState(() => readSession(SESSION_VISIT_KEY));
+
+  const handleLogin = (userData) => {
+    setUser(userData);
+    writeSession(SESSION_USER_KEY, userData);
+  };
   // VisitorFormScreen sudah mengirim ke backend & meneruskan { visitId, status, tujuan }.
-  const handleVisitorSubmit = (result) => setVisitStatus(result);
+  const handleVisitorSubmit = (result) => {
+    setVisitStatus(result);
+    writeSession(SESSION_VISIT_KEY, result);
+  };
   const handleLogout = () => {
     setUser(null);
     setVisitStatus(null);
+    writeSession(SESSION_USER_KEY, null);
+    writeSession(SESSION_VISIT_KEY, null);
   };
 
   if (!user) return <LoginScreen onLogin={handleLogin} />;

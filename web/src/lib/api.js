@@ -15,7 +15,7 @@ import {
   MOCK_VISITS, MOCK_PACKAGES, MOCK_SECURITY_OFFICERS,
   CHART_WEEKLY, CHART_DEPT, resolveRoleFromEmail,
 } from './mockData';
-import { LOCATIONS, timeID } from './constants';
+import { dateID, LOCATIONS, sortVisitsNewest, timeID } from './constants';
 import { adaptVisit, adaptPackage } from './adapters';
 
 const API_URL = import.meta.env.VITE_APPS_SCRIPT_URL || '';
@@ -64,7 +64,10 @@ let pkgSeq = 200;
 
 function nowParts() {
   const d = new Date();
-  return { date: d.toLocaleDateString('en-CA'), time: timeID(d) };
+  return { date: dateID(d), time: timeID(d), iso: d.toISOString() };
+}
+function scheduledAt(date) {
+  return date ? `${date}T00:00:00+07:00` : '';
 }
 function mutateVisit(id, patch) {
   const v = store.visits.find((x) => x.id === id);
@@ -116,12 +119,22 @@ export const api = {
   submitVisit: async (data) => {
     if (USE_MOCK) {
       const id = 'V-' + (++visitSeq);
-      const { date, time } = nowParts();
+      const { date, time, iso } = nowParts();
+      const scheduleType = String(data.schedule_type || 'NOW').toUpperCase() === 'SCHEDULE' ? 'SCHEDULE' : 'NOW';
+      const scheduledDate = scheduleType === 'SCHEDULE' ? data.scheduled_date : '';
       store.visits.unshift({
         id, email: data.email, name: data.name || '', asal: data.asal || '',
         keperluan: data.keperluan, tujuan: data.tujuan, location: data.location || '',
         status: 'PENDING', cardNumber: '', rejectReason: '',
         selfiePhoto: data.selfie_url || '', ktpPhoto: data.ktp_photo_url || '',
+        scheduleType,
+        scheduledDate,
+        scheduledAt: scheduledAt(scheduledDate),
+        createdAt: iso,
+        checkinAt: '',
+        checkinDate: '',
+        checkinTime: '',
+        checkoutAt: '',
         date, time, timeOut: '',
       });
       return { ok: true, visit_id: id, status: 'PENDING' };
@@ -147,8 +160,8 @@ export const api = {
     return (await post('getActiveVisits', { location, actor_email: actorEmail })).map(adaptVisit);
   },
   getHistory: async (filter = {}) => {
-    if (USE_MOCK) return clone(store.visits);
-    return (await post('getHistory', filter)).map(adaptVisit);
+    if (USE_MOCK) return sortVisitsNewest(clone(store.visits));
+    return sortVisitsNewest((await post('getHistory', filter)).map(adaptVisit));
   },
 
   checkIn: async (visitId, cardNumber, actorEmail) => {
@@ -158,7 +171,14 @@ export const api = {
       if (store.visits.some((v) => v.status === 'CHECKED_IN' && String(v.cardNumber).trim() === card)) {
         throw new Error('Nomor kartu sedang digunakan tamu lain.');
       }
-      mutateVisit(visitId, { status: 'CHECKED_IN', cardNumber: card });
+      const { date, time, iso } = nowParts();
+      mutateVisit(visitId, {
+        status: 'CHECKED_IN',
+        cardNumber: card,
+        checkinAt: iso,
+        checkinDate: date,
+        checkinTime: time,
+      });
       return { ok: true };
     }
     return post('checkIn', { visit_id: visitId, card_number: cardNumber, actor_email: actorEmail });
@@ -173,7 +193,7 @@ export const api = {
   },
   checkOut: async (visitId, actorEmail) => {
     if (USE_MOCK) {
-      mutateVisit(visitId, { status: 'CHECKED_OUT', timeOut: timeID() });
+      mutateVisit(visitId, { status: 'CHECKED_OUT', checkoutAt: new Date().toISOString(), timeOut: timeID() });
       return { ok: true };
     }
     return post('checkOut', { visit_id: visitId, actor_email: actorEmail });

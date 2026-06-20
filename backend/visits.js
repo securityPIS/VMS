@@ -88,6 +88,7 @@ function getHistory(data) {
   if (data.location) rows = rows.filter((v) => normEmail(v.location) === normEmail(data.location));
   if (data.from) rows = rows.filter((v) => v.created_at && new Date(v.created_at) >= new Date(data.from));
   if (data.to) rows = rows.filter((v) => v.created_at && new Date(v.created_at) <= new Date(data.to));
+  rows.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   return enrichVisits(rows);
 }
 

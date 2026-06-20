@@ -6,11 +6,11 @@ import Button from '../../components/Button';
 const NAV = [
   { key: 'antrean', label: 'Antrean', icon: Clock },
   { key: 'aktif', label: 'Tamu Aktif', icon: Users },
+  { key: 'riwayat', label: 'LOG', icon: History },
   { key: 'paket', label: 'Paket & Kiriman', icon: Package },
-  { key: 'riwayat', label: 'Riwayat', icon: History },
 ];
 
-const SecuritySidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount }) => (
+const SecuritySidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount, activeCount }) => (
   <aside className="w-full md:w-72 bg-[#FDFBFF] flex flex-col md:h-screen sticky top-0 z-10 md:rounded-r-[32px] shadow-sm border-r border-[#EAE7EC]">
     <div className="p-6 md:pb-4 flex items-center justify-between md:justify-center">
       <BrandLogo className="h-8" />
@@ -32,6 +32,7 @@ const SecuritySidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount
     <nav className="flex-1 px-4 py-4 flex flex-row md:flex-col gap-2 overflow-x-auto">
       {NAV.map(({ key, label, icon: Icon }) => {
         const active = activeTab === key;
+        const count = key === 'antrean' ? pendingCount : key === 'aktif' ? activeCount : 0;
         return (
           <button
             key={key}
@@ -42,11 +43,11 @@ const SecuritySidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount
           >
             <span className="flex items-center gap-3">
               <Icon size={20} /> {label}
-              {key === 'antrean' && <span className="md:hidden">({pendingCount})</span>}
+              {count > 0 && <span className="md:hidden">({count})</span>}
             </span>
-            {key === 'antrean' && pendingCount > 0 && (
+            {count > 0 && (
               <span className="hidden md:flex bg-[#BA313B] text-white text-[10px] w-5 h-5 items-center justify-center rounded-full">
-                {pendingCount}
+                {count}
               </span>
             )}
           </button>

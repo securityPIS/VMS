@@ -2,18 +2,27 @@
 // Foto KTP/selfie ditangkap via kamera (PhotoCapture) lalu diunggah ke backend
 // (api.uploadPhoto) sebelum submit kunjungan (api.submitVisit).
 import { useEffect, useState } from 'react';
-import { Users, MapPin, CheckCircle } from 'lucide-react';
+import { CalendarDays, CheckCircle, MapPin, Users } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
 import PhotoCapture from '../components/PhotoCapture';
 import { api } from '../lib/api';
-import { LOCATIONS } from '../lib/constants';
+import { dateID, LOCATIONS } from '../lib/constants';
 
 const VisitorFormScreen = ({ user, onSubmit }) => {
   const isReturning = user.type === 'returning';
+  const today = dateID();
   const [formData, setFormData] = useState({
-    name: user.name, ktp: '', asal: user.asal || '', tujuan: '', keperluan: '', location: '', consent: false,
+    name: user.name,
+    ktp: '',
+    asal: user.asal || '',
+    tujuan: '',
+    keperluan: '',
+    location: '',
+    scheduleType: 'NOW',
+    scheduledDate: today,
+    consent: false,
   });
   const [ktpPhoto, setKtpPhoto] = useState('');       // data URL atau ''
   const [selfiePhoto, setSelfiePhoto] = useState(''); // data URL atau ''
@@ -31,9 +40,11 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
   }, []);
 
   const isFormValid = isReturning
-    ? formData.tujuan && formData.keperluan && formData.location && selfiePhoto && formData.consent
+    ? formData.tujuan && formData.keperluan && formData.location &&
+      (formData.scheduleType === 'NOW' || formData.scheduledDate >= today) && selfiePhoto && formData.consent
     : formData.name && formData.ktp.length === 16 && formData.asal && formData.tujuan &&
-      formData.keperluan && formData.location && ktpPhoto && selfiePhoto && formData.consent;
+      formData.keperluan && formData.location &&
+      (formData.scheduleType === 'NOW' || formData.scheduledDate >= today) && ktpPhoto && selfiePhoto && formData.consent;
 
   const handleSubmit = async () => {
     setError('');
@@ -56,6 +67,8 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
         tujuan: formData.tujuan,
         keperluan: formData.keperluan,
         location: formData.location,
+        schedule_type: formData.scheduleType,
+        scheduled_date: formData.scheduleType === 'SCHEDULE' ? formData.scheduledDate : '',
         selfie_url: selfieRef,
         ktp_photo_url: ktpRef,
       });
@@ -116,6 +129,44 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
                 value={formData.keperluan}
                 onChange={(e) => setFormData({ ...formData, keperluan: e.target.value })}
               />
+            </div>
+            <div className="w-full">
+              <label className="block text-xs font-medium text-[#44474E] mb-2 ml-1">Waktu Kunjungan</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { key: 'NOW', label: 'Sekarang' },
+                  { key: 'SCHEDULE', label: 'Pilih tanggal' },
+                ].map((option) => {
+                  const active = formData.scheduleType === option.key;
+                  return (
+                    <button
+                      key={option.key}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, scheduleType: option.key, scheduledDate: formData.scheduledDate || today })}
+                      className={`h-12 rounded-full border text-sm font-medium transition-colors ${
+                        active ? 'bg-[#D5E3FF] border-[#3C6DB2] text-[#001B3E]' : 'border-[#CFC7D2] text-[#44474E] hover:bg-[#1A1B1E]/5'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  );
+                })}
+              </div>
+              {formData.scheduleType === 'SCHEDULE' && (
+                <div className="mt-3">
+                  <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Tanggal Kunjungan</label>
+                  <div className="relative">
+                    <CalendarDays size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#3C6DB2]" />
+                    <input
+                      type="date"
+                      min={today}
+                      value={formData.scheduledDate}
+                      onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
+                      className="w-full pl-11 pr-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#3C6DB2] text-[#1A1B1E]"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             <PhotoCapture label="Verifikasi Wajah (Selfie)" value={selfiePhoto} onChange={setSelfiePhoto} capture="user" />
           </section>

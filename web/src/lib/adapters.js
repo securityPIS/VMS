@@ -2,14 +2,14 @@
 // dipakai komponen frontend (camelCase, date/time terpisah). Dipanggil di api.js
 // untuk respons backend; data mock sudah memakai bentuk frontend sehingga lewat.
 
-import { timeID } from './constants';
+import { dateID, timeID } from './constants';
 
 // Pisah nilai datetime jadi { date: 'YYYY-MM-DD', time: 'HH:mm' } (lokal).
 export function splitDateTime(value) {
   if (!value) return { date: '', time: '' };
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return { date: String(value), time: '' };
-  return { date: d.toLocaleDateString('en-CA'), time: timeID(d) };
+  return { date: dateID(d), time: timeID(d) };
 }
 
 function justTime(value) {
@@ -22,6 +22,9 @@ function justTime(value) {
 // timeline). `selfiePhoto`/`ktpPhoto` berisi ref foto (id Drive) → RemotePhoto.
 export function adaptVisit(row) {
   const created = splitDateTime(row.created_at);
+  const scheduled = splitDateTime(row.scheduled_at);
+  const checkin = splitDateTime(row.checkin_at);
+  const scheduleType = String(row.schedule_type || 'NOW').toUpperCase() === 'SCHEDULE' ? 'SCHEDULE' : 'NOW';
   return {
     id: row.visit_id,
     visitorId: row.visitor_id,
@@ -36,6 +39,14 @@ export function adaptVisit(row) {
     rejectReason: row.reject_reason || '',
     selfiePhoto: row.selfie_url || '',
     ktpPhoto: row.ktp_photo_url || '',
+    scheduleType,
+    scheduledAt: row.scheduled_at || '',
+    scheduledDate: scheduled.date,
+    createdAt: row.created_at || '',
+    checkinAt: row.checkin_at || '',
+    checkinDate: checkin.date,
+    checkinTime: checkin.time,
+    checkoutAt: row.checkout_at || '',
     date: created.date,
     time: created.time,
     timeOut: justTime(row.checkout_at),

@@ -1,5 +1,4 @@
-// Modal Check-in: input nomor kartu (wajib) sebelum mengizinkan tamu (UIUX 5.6).
-// TODO integrasi: validasi nomor kartu tidak duplikat dengan tamu aktif (FR-10).
+// Modal Check In: input nomor kartu (wajib) sebelum mengizinkan tamu (UIUX 5.6).
 import ModalBase from '../../components/ModalBase';
 import Button from '../../components/Button';
 import InputField from '../../components/InputField';
@@ -8,12 +7,12 @@ const CheckInModal = ({ visit, cardNumber, setCardNumber, onConfirm, onClose, bu
   <ModalBase
     isOpen={!!visit}
     onClose={onClose}
-    title="Check-in Visitor"
+    title="Check In Visitor"
     footer={
       <>
         <Button variant="text" onClick={onClose} disabled={busy}>Batal</Button>
         <Button variant="success" onClick={onConfirm} disabled={!cardNumber || busy}>
-          {busy ? 'Memproses…' : 'Konfirmasi Check-in'}
+          {busy ? 'Memproses...' : 'Konfirmasi Check In'}
         </Button>
       </>
     }

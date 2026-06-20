@@ -2,6 +2,7 @@
 import { CheckCircle, X } from 'lucide-react';
 import Button from '../../components/Button';
 import RemotePhoto from '../../components/RemotePhoto';
+import { visitScheduleDateTime, visitScheduleStatus } from '../../lib/constants';
 
 const QueueTab = ({ visits, onCheckIn, onReject }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2">
@@ -12,15 +13,19 @@ const QueueTab = ({ visits, onCheckIn, onReject }) => (
             <h3 className="font-medium text-xl text-[#1A1B1E]">{v.name}</h3>
             <p className="text-sm text-[#74777F]">{v.asal}</p>
           </div>
-          <span className="text-xs font-medium text-[#44474E] bg-[#F4F2F6] px-3 py-1 rounded-full">{v.time}</span>
+          <span className={`text-xs font-bold px-3 py-1 rounded-full ${
+            visitScheduleStatus(v) === 'SCHEDULE' ? 'bg-[#D5E3FF] text-[#001B3E]' : 'bg-[#E6F893] text-[#192100]'
+          }`}>
+            {visitScheduleStatus(v)}
+          </span>
         </div>
 
         <div className="flex gap-3 mb-5">
           {v.ktpPhoto && (
-            <RemotePhoto refId={v.ktpPhoto} alt="KTP" className="w-24 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" />
+            <RemotePhoto refId={v.ktpPhoto} alt="KTP" openInNewTab className="w-24 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" />
           )}
           {v.selfiePhoto && (
-            <RemotePhoto refId={v.selfiePhoto} alt="Selfie" className="w-16 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" />
+            <RemotePhoto refId={v.selfiePhoto} alt="Selfie" openInNewTab className="w-16 h-16 object-cover rounded-[12px] border border-[#EAE7EC] cursor-pointer hover:opacity-80" />
           )}
         </div>
 
@@ -28,6 +33,7 @@ const QueueTab = ({ visits, onCheckIn, onReject }) => (
           <div className="text-xs text-[#74777F] mb-1">Keperluan &amp; Tujuan</div>
           <div className="text-sm font-medium text-[#1A1B1E]">{v.keperluan}</div>
           <div className="text-sm text-[#3C6DB2] mt-1 font-medium">Bertemu: {v.tujuan}</div>
+          <div className="text-xs text-[#44474E] mt-3">Waktu Kunjungan: <span className="font-medium text-[#1A1B1E]">{visitScheduleDateTime(v)}</span></div>
         </div>
 
         <div className="flex gap-2">

@@ -5,6 +5,7 @@
 // berkali-kali, jadi cukup buka sekali.
 let _ssCache = null;
 const _sheetCache = {};
+const _headerEnsured = {};
 
 function getSpreadsheet() {
   if (_ssCache) return _ssCache;
@@ -22,9 +23,34 @@ function getSheet(name) {
   return sh;
 }
 
+function getHeaders(name) {
+  const sh = getSheet(name);
+  const minCols = HEADERS[name] ? HEADERS[name].length : 1;
+  const colCount = Math.max(sh.getLastColumn(), minCols, 1);
+  return sh.getRange(1, 1, 1, colCount).getValues()[0]
+    .map((h) => String(h || '').trim())
+    .filter(Boolean);
+}
+
+// Menambah kolom baru di akhir agar data lama tidak bergeser.
+function ensureHeaders(name) {
+  const expected = HEADERS[name];
+  if (!expected || _headerEnsured[name]) return;
+  const current = getHeaders(name);
+  const missing = expected.filter((h) => current.indexOf(h) < 0);
+  if (missing.length) {
+    getSheet(name)
+      .getRange(1, current.length + 1, 1, missing.length)
+      .setValues([missing])
+      .setFontWeight('bold');
+  }
+  _headerEnsured[name] = true;
+}
+
 // Baca seluruh baris → array of objects. Key dari header (baris 1).
 // `_row` = nomor baris sheet, dipakai untuk update/hapus presisi.
 function readRows(name) {
+  ensureHeaders(name);
   const sh = getSheet(name);
   const values = sh.getDataRange().getValues();
   if (values.length < 2) return [];
@@ -38,7 +64,8 @@ function readRows(name) {
 
 // Tambah satu baris dari objek, mengikuti urutan kolom di HEADERS[name].
 function appendRow(name, obj) {
-  const header = HEADERS[name];
+  ensureHeaders(name);
+  const header = getHeaders(name);
   getSheet(name).appendRow(header.map((h) => (obj[h] !== undefined && obj[h] !== null ? obj[h] : '')));
 }
 
@@ -46,8 +73,9 @@ function appendRow(name, obj) {
 // Menulis sekali sebagai satu rentang kontigu (1 baca + 1 tulis) alih-alih
 // setValue() per sel — tiap setValue() adalah round-trip terpisah ke Sheets.
 function updateCells(name, rowNum, patch) {
+  ensureHeaders(name);
   const sh = getSheet(name);
-  const header = HEADERS[name];
+  const header = getHeaders(name);
   const cols = Object.keys(patch)
     .map((key) => header.indexOf(key))
     .filter((c) => c >= 0);

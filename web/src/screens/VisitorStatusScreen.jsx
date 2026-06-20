@@ -36,7 +36,7 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
             <div className="w-24 h-24 bg-[#FFEFD6] text-[#5E4200] rounded-full flex items-center justify-center mb-6 animate-pulse">
               <Clock size={48} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Menunggu Verifikasi</h2>
+            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Menunggu</h2>
             <p className="text-[#44474E] text-sm mb-6">
               Mohon tunggu sebentar di lobi. Petugas keamanan sedang memverifikasi data dan tujuan Anda (
               <strong>{statusData.tujuan}</strong>).
@@ -49,7 +49,7 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
             <div className="w-24 h-24 bg-[#E6F893] text-[#192100] rounded-full flex items-center justify-center mb-6">
               <CheckCircle size={48} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Kunjungan Disetujui</h2>
+            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Check In</h2>
             <p className="text-[#44474E] text-sm mb-6">
               Silakan masuk. Jangan lupa mengenakan kartu visitor Anda selama berada di dalam area.
             </p>
@@ -61,7 +61,7 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
             <div className="w-24 h-24 bg-[#EFEDF1] text-[#44474E] rounded-full flex items-center justify-center mb-6">
               <LogOut size={48} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Kunjungan Selesai</h2>
+            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Check Out</h2>
             <p className="text-[#44474E] text-sm mb-6">
               Terima kasih atas kunjungan Anda. Pastikan kartu visitor telah dikembalikan ke petugas.
             </p>
@@ -73,7 +73,7 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
             <div className="w-24 h-24 bg-[#FFDAD6] text-[#410002] rounded-full flex items-center justify-center mb-6">
               <X size={48} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Kunjungan Ditolak</h2>
+            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Reject</h2>
             <div className="bg-[#FFDAD6]/30 border border-[#FFDAD6] p-4 rounded-[16px] text-sm text-[#410002] mb-6 w-full text-left">
               <strong>Alasan:</strong> {rejectReason || 'Tujuan tidak dapat ditemui.'}
             </div>
