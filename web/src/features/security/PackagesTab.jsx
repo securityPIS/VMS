@@ -29,13 +29,15 @@ const PackagesTab = ({ packages, onAdd, onPickup }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-[#FDFBFF] p-6 rounded-[28px] shadow-sm border border-[#EAE7EC]">
+    <div className="animate-in fade-in slide-in-from-bottom-2">
+      {/* Header "Daftar Paket" hanya tampil di desktop; di mobile tombol registrasi
+          dipindah sejajar judul "Paket & Kiriman Masuk" (lihat SecurityDashboard). */}
+      <div className="hidden md:flex justify-between items-center gap-4 bg-[#FDFBFF] p-6 rounded-[28px] shadow-sm border border-[#EAE7EC] mb-6">
         <div>
           <h2 className="text-xl font-normal text-[#1A1B1E]">Daftar Paket</h2>
           <p className="text-sm text-[#44474E] mt-1">Registrasi barang titipan kurir / ekspedisi.</p>
         </div>
-        <Button variant="filled" className="px-4 py-2 text-sm sm:px-6 sm:py-3" onClick={onAdd}>
+        <Button variant="filled" className="px-6 py-3" onClick={onAdd}>
           <Plus size={18} /> Registrasi Paket
         </Button>
       </div>
@@ -57,18 +59,18 @@ const PackagesTab = ({ packages, onAdd, onPickup }) => {
                 className="bg-[#FDFBFF] rounded-[20px] border border-[#EAE7EC] p-4 shadow-sm active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-start gap-3">
-                  {p.photo ? (
-                    <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-sm border border-[#EAE7EC] cursor-pointer" />
-                  ) : (
-                    <div className="w-12 h-12 rounded-[12px] bg-[#F4F2F6] border border-[#EAE7EC] flex items-center justify-center text-[#74777F] shrink-0">
-                      <Package size={20} />
-                    </div>
-                  )}
                   <div className="min-w-0 flex-1">
                     <div className="font-medium text-[#1A1B1E] truncate">{p.sender}</div>
                     <div className="text-xs text-[#74777F] mt-0.5 truncate">{p.type} - {p.id}</div>
                     <div className="text-xs text-[#3C6DB2] mt-2 font-medium truncate">Untuk: {p.recipient}</div>
                   </div>
+                  {p.photo ? (
+                    <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-sm border border-[#EAE7EC] cursor-pointer shrink-0" />
+                  ) : (
+                    <div className="w-12 h-12 rounded-[12px] bg-[#F4F2F6] border border-[#EAE7EC] flex items-center justify-center text-[#74777F] shrink-0">
+                      <Package size={20} />
+                    </div>
+                  )}
                 </div>
                 <div className="mt-4 flex items-end justify-between gap-3">
                   <div className="space-y-1">

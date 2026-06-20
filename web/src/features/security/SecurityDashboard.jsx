@@ -1,9 +1,10 @@
 // Container panel Security: memuat data lewat api.* (mock/backend transparan),
 // merakit sidebar, tab, & modal. Setiap aksi memanggil backend lalu memuat ulang.
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
 import { dateID, sortVisitsNewest, timeID } from '../../lib/constants';
+import Button from '../../components/Button';
 import SecuritySidebar from './SecuritySidebar';
 import QueueTab from './QueueTab';
 import ActiveVisitsTab from './ActiveVisitsTab';
@@ -169,9 +170,20 @@ const SecurityDashboard = ({ user, onLogout }) => {
       />
 
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        <div className="mb-6 md:mb-8 flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-normal text-[#1A1B1E]">{TITLES[activeTab]}</h1>
-          {busy && <Loader2 className="text-[#3C6DB2] animate-spin" size={22} />}
+        <div className="mb-6 md:mb-8 flex items-center justify-between gap-3">
+          <h1 className="text-2xl md:text-3xl font-normal text-[#1A1B1E]">{TITLES[activeTab]}</h1>
+          <div className="flex items-center gap-3 shrink-0">
+            {busy && <Loader2 className="text-[#3C6DB2] animate-spin" size={22} />}
+            {activeTab === 'paket' && (
+              <Button
+                variant="filled"
+                className="md:hidden !px-4 !py-2 !gap-1.5 text-sm whitespace-nowrap"
+                onClick={() => setShowAddPackage(true)}
+              >
+                <Plus size={16} /> Registrasi
+              </Button>
+            )}
+          </div>
         </div>
 
         {error && (
