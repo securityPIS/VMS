@@ -92,13 +92,13 @@ const parseClockMinutes = (value) => {
   return m ? Number(m[1]) * 60 + Number(m[2]) : null;
 };
 
-// Durasi menit → ringkas '2j 15m' / '2j' / '45m'.
+// Durasi menit → '2 Jam 15 Menit' / '2 Jam' / '45 Menit'.
 const formatDuration = (mins) => {
   const h = Math.floor(mins / 60);
   const m = mins % 60;
-  if (h && m) return `${h}j ${m}m`;
-  if (h) return `${h}j`;
-  return `${m}m`;
+  if (h && m) return `${h} Jam ${m} Menit`;
+  if (h) return `${h} Jam`;
+  return `${m} Menit`;
 };
 
 // Rentang waktu kunjungan: 'HH.mm - HH.mm' bila sudah checkout, atau 'HH.mm'

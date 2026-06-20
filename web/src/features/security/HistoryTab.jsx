@@ -35,6 +35,7 @@ const HistoryTab = ({ visits, showLocation = false }) => {
                     <tr key={v.id} className="border-b border-[#EAE7EC] hover:bg-[#F4F2F6]/50 transition-colors">
                       <td className="p-5 pl-6">
                         <div className="font-medium text-[#1A1B1E] text-base">{v.name}</div>
+                        {v.asal && <div className="hidden md:block text-xs text-[#74777F] mt-0.5">{v.asal}</div>}
                         <div className="md:hidden text-xs text-[#74777F] mt-0.5">
                           {range || '-'}
                           {duration && <span className="italic font-bold text-[#44474E]"> · {duration}</span>}
