@@ -4,7 +4,7 @@ import Button from '../../components/Button';
 import RemotePhoto from '../../components/RemotePhoto';
 import { visitScheduleDateTime, visitScheduleStatus } from '../../lib/constants';
 
-const QueueTab = ({ visits, onCheckIn, onReject }) => (
+const QueueTab = ({ visits, onCheckIn, onReject, showLocation = false }) => (
   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom-2">
     {visits.map((v) => (
       <div key={v.id} className="bg-[#FDFBFF] p-6 rounded-[28px] shadow-sm border border-[#EAE7EC] hover:shadow-md transition-shadow">
@@ -12,6 +12,7 @@ const QueueTab = ({ visits, onCheckIn, onReject }) => (
           <div>
             <h3 className="font-medium text-xl text-[#1A1B1E]">{v.name}</h3>
             <p className="text-sm text-[#74777F]">{v.asal}</p>
+            {showLocation && <p className="text-xs text-[#3C6DB2] font-medium mt-1">{v.location || 'Lokasi belum tercatat'}</p>}
           </div>
           <span className={`text-xs font-bold px-3 py-1 rounded-full ${
             visitScheduleStatus(v) === 'SCHEDULE' ? 'bg-[#D5E3FF] text-[#001B3E]' : 'bg-[#E6F893] text-[#192100]'

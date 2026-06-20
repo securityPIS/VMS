@@ -2,7 +2,7 @@
 import Badge from '../../components/Badge';
 import { sortVisitsNewest, visitCreatedDateTime } from '../../lib/constants';
 
-const HistoryTab = ({ visits }) => {
+const HistoryTab = ({ visits, showLocation = false }) => {
   const sorted = sortVisitsNewest(visits);
 
   return (
@@ -13,6 +13,7 @@ const HistoryTab = ({ visits }) => {
             <tr className="bg-[#F4F2F6] text-[#44474E] text-sm border-b border-[#EAE7EC]">
               <th className="p-5 font-medium pl-6">Visitor</th>
               <th className="p-5 font-medium hidden md:table-cell">Waktu</th>
+              {showLocation && <th className="p-5 font-medium hidden lg:table-cell">Lokasi</th>}
               <th className="p-5 font-medium">Status</th>
               <th className="p-5 font-medium hidden sm:table-cell">Detail</th>
             </tr>
@@ -27,6 +28,7 @@ const HistoryTab = ({ visits }) => {
                 <td className="p-5 hidden md:table-cell text-sm text-[#44474E]">
                   {visitCreatedDateTime(v)} {v.timeOut ? `- ${v.timeOut}` : ''}
                 </td>
+                {showLocation && <td className="p-5 hidden lg:table-cell text-sm text-[#44474E]">{v.location || '-'}</td>}
                 <td className="p-5">
                   <Badge status={v.status} />
                 </td>
@@ -37,7 +39,7 @@ const HistoryTab = ({ visits }) => {
             ))}
             {sorted.length === 0 && (
               <tr>
-                <td colSpan="4" className="p-10 text-center text-[#74777F]">LOG kunjungan masih kosong.</td>
+                <td colSpan={showLocation ? 5 : 4} className="p-10 text-center text-[#74777F]">LOG kunjungan masih kosong.</td>
               </tr>
             )}
           </tbody>

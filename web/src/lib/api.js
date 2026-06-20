@@ -103,6 +103,10 @@ function mockStats() {
     dept: CHART_DEPT,
   };
 }
+function sameLocation(rowLocation, location) {
+  if (!location) return true;
+  return String(rowLocation || '').trim().toLowerCase() === String(location || '').trim().toLowerCase();
+}
 
 // ── API publik ──────────────────────────────────────────────────────────────
 export const api = {
@@ -164,15 +168,15 @@ export const api = {
 
   // ── Security: kunjungan ──
   getPendingVisits: async (location, actorEmail) => {
-    if (USE_MOCK) return store.visits.filter((v) => v.status === 'PENDING');
+    if (USE_MOCK) return store.visits.filter((v) => v.status === 'PENDING' && sameLocation(v.location, location));
     return (await post('getPendingVisits', { location, actor_email: actorEmail })).map(adaptVisit);
   },
   getActiveVisits: async (location, actorEmail) => {
-    if (USE_MOCK) return store.visits.filter((v) => v.status === 'CHECKED_IN');
+    if (USE_MOCK) return store.visits.filter((v) => v.status === 'CHECKED_IN' && sameLocation(v.location, location));
     return (await post('getActiveVisits', { location, actor_email: actorEmail })).map(adaptVisit);
   },
   getHistory: async (filter = {}) => {
-    if (USE_MOCK) return sortVisitsNewest(clone(store.visits));
+    if (USE_MOCK) return sortVisitsNewest(clone(store.visits).filter((v) => sameLocation(v.location, filter.location)));
     return sortVisitsNewest((await post('getHistory', filter)).map(adaptVisit));
   },
 
@@ -221,7 +225,10 @@ export const api = {
 
   // ── Security: paket ──
   getPackages: async (filter = {}, actorEmail) => {
-    if (USE_MOCK) return clone(store.packages).filter((p) => !filter.status || p.status === filter.status);
+    if (USE_MOCK) {
+      return clone(store.packages).filter((p) =>
+        (!filter.status || p.status === filter.status) && sameLocation(p.location, filter.location));
+    }
     return (await post('getPackages', { ...filter, actor_email: actorEmail })).map(adaptPackage);
   },
   addPackage: async (data, actorEmail) => {

@@ -82,18 +82,23 @@ function resolveLocationForUser(user) {
   return { location_id: user.location_id || '', name: user.location || '' };
 }
 
-// NFR-08: jika request menyertakan `actor_email` (identitas petugas), pastikan ia
+// NFR-08: jika request menyertakan `actor_email`, pastikan ia admin aktif atau
 // petugas Active pada lokasi yang diminta. Tanpa actor_email (fase mock), dilewati.
 // TODO go-live: wajibkan actor_email/token terverifikasi agar enforcement penuh.
 function assertSecurityAt(data, location) {
   const actor = normEmail(data.actor_email);
   if (!actor) return;
   const user = findUserByEmail(actor);
-  if (!user || user.role !== ROLE.SECURITY || String(user.status) === USER_STATUS.INACTIVE) {
+  if (!user || String(user.status) === USER_STATUS.INACTIVE) {
+    throw new Error('Akses ditolak: bukan petugas/admin aktif.');
+  }
+  if (user.role === ROLE.ADMIN) return;
+  if (user.role !== ROLE.SECURITY) {
     throw new Error('Akses ditolak: bukan petugas aktif.');
   }
   const assigned = resolveLocationForUser(user);
   const requested = findActiveLocation({ location_id: data.location_id, location: location || data.location });
+  if (!requested) throw new Error('Akses ditolak: lokasi wajib valid untuk petugas.');
   if (requested && assigned.location_id && assigned.location_id === requested.location_id) return;
   if ((data.location_id || location || data.location) && normText(assigned.name) !== normText(location || data.location)) {
     throw new Error('Akses ditolak: lokasi di luar penugasan Anda.');

@@ -1,14 +1,18 @@
 // Sidebar navigasi panel admin (tema gelap, sesuai header dashboard admin).
-import { LogOut, BarChart3, ShieldCheck, History } from 'lucide-react';
+import { LogOut, BarChart3, ShieldCheck, History, Clock, Users, Package } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
 
 const NAV = [
   { key: 'dashboard', label: 'Dashboard Overview', icon: BarChart3 },
   { key: 'assignment', label: 'Assignment Petugas', icon: ShieldCheck },
   { key: 'visitor', label: 'Jejak Visitor', icon: History },
+  { key: 'antrean', label: 'Antrean', icon: Clock, countKey: 'pending' },
+  { key: 'aktif', label: 'Tamu Aktif', icon: Users, countKey: 'active' },
+  { key: 'riwayat', label: 'LOG', icon: History },
+  { key: 'paket', label: 'Paket & Kiriman', icon: Package },
 ];
 
-const AdminSidebar = ({ user, onLogout, activeTab, setActiveTab }) => (
+const AdminSidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount = 0, activeCount = 0 }) => (
   <aside className="w-full md:w-72 bg-[#1A1B1E] text-white flex flex-col md:h-screen sticky top-0 z-10 md:rounded-r-[32px] shadow-lg">
     <div className="p-6 md:pb-8 flex items-center justify-between md:justify-center">
       <BrandLogo className="h-8 brightness-0 invert" />
@@ -28,17 +32,28 @@ const AdminSidebar = ({ user, onLogout, activeTab, setActiveTab }) => (
     </div>
 
     <nav className="flex-1 px-4 py-2 flex flex-row md:flex-col gap-2 overflow-x-auto">
-      {NAV.map(({ key, label, icon: Icon }) => (
-        <button
-          key={key}
-          onClick={() => setActiveTab(key)}
-          className={`flex items-center gap-3 px-4 py-3.5 rounded-full transition-colors whitespace-nowrap text-sm font-medium ${
-            activeTab === key ? 'bg-[#3C6DB2] text-white' : 'text-white/60 hover:bg-white/5'
-          }`}
-        >
-          <Icon size={20} /> {label}
-        </button>
-      ))}
+      {NAV.map(({ key, label, icon: Icon, countKey }) => {
+        const count = countKey === 'pending' ? pendingCount : countKey === 'active' ? activeCount : 0;
+        return (
+          <button
+            key={key}
+            onClick={() => setActiveTab(key)}
+            className={`flex items-center justify-between gap-3 px-4 py-3.5 rounded-full transition-colors whitespace-nowrap text-sm font-medium ${
+              activeTab === key ? 'bg-[#3C6DB2] text-white' : 'text-white/60 hover:bg-white/5'
+            }`}
+          >
+            <span className="flex items-center gap-3">
+              <Icon size={20} /> {label}
+              {count > 0 && <span className="md:hidden">({count})</span>}
+            </span>
+            {count > 0 && (
+              <span className="hidden md:flex bg-[#BA313B] text-white text-[10px] w-5 h-5 items-center justify-center rounded-full">
+                {count}
+              </span>
+            )}
+          </button>
+        );
+      })}
     </nav>
 
     <div className="p-6 mt-auto hidden md:block">

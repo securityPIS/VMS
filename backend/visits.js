@@ -43,6 +43,7 @@ function checkIn(data) {
   const rows = readRows(SHEETS.VISITS);
   const row = rows.find((v) => v.visit_id === data.visit_id);
   if (!row) throw new Error('Kunjungan tidak ditemukan: ' + data.visit_id);
+  assertSecurityAt(data, row.location);
   if (row.status !== VISIT_STATUS.PENDING) throw new Error('Kunjungan bukan status PENDING.');
   const card = String(data.card_number || '').trim();
   if (!card) throw new Error('Nomor kartu wajib diisi.');
@@ -67,6 +68,7 @@ function checkIn(data) {
 // Reject: alasan wajib + kirim email pemberitahuan ke tamu (FR-13 / §11).
 function rejectVisit(data) {
   const row = findVisitRow(data.visit_id);
+  assertSecurityAt(data, row.location);
   const reason = String(data.reason || '').trim();
   if (!reason) throw new Error('Alasan penolakan wajib diisi.');
 
@@ -81,6 +83,7 @@ function rejectVisit(data) {
 
 function checkOut(data) {
   const row = findVisitRow(data.visit_id);
+  assertSecurityAt(data, row.location);
   if (row.status !== VISIT_STATUS.CHECKED_IN) throw new Error('Kunjungan belum CHECKED_IN.');
   updateCells(SHEETS.VISITS, row._row, { status: VISIT_STATUS.CHECKED_OUT, checkout_at: now() });
   return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.CHECKED_OUT };
@@ -88,6 +91,7 @@ function checkOut(data) {
 
 // Riwayat lengkap untuk admin, dengan filter opsional lokasi & rentang tanggal.
 function getHistory(data) {
+  assertSecurityAt(data, data.location);
   let rows = readRows(SHEETS.VISITS);
   if (data.location) rows = rows.filter((v) => normEmail(v.location) === normEmail(data.location));
   if (data.from) rows = rows.filter((v) => v.created_at && new Date(v.created_at) >= new Date(data.from));

@@ -12,7 +12,7 @@ const DetailLine = ({ label, value }) => (
   </div>
 );
 
-const ActiveVisitsTab = ({ visits, onCheckout }) => {
+const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
   const [detail, setDetail] = useState(null);
 
   const openWithKeyboard = (event, visit) => {
@@ -45,6 +45,7 @@ const ActiveVisitsTab = ({ visits, onCheckout }) => {
                     <div className="font-medium text-[#1A1B1E] truncate">{v.name}</div>
                     <div className="text-xs text-[#74777F] mt-0.5 truncate">{v.asal}</div>
                     <div className="text-xs text-[#3C6DB2] mt-2 font-medium truncate">Bertemu: {v.tujuan}</div>
+                    {showLocation && <div className="text-xs text-[#44474E] mt-1 truncate">{v.location || 'Lokasi belum tercatat'}</div>}
                   </div>
                   <span className="shrink-0 bg-[#D5E3FF] text-[#001B3E] font-bold px-3 py-1 rounded-[8px] text-xs">
                     {v.cardNumber || '-'}
@@ -78,6 +79,7 @@ const ActiveVisitsTab = ({ visits, onCheckout }) => {
                     <th className="p-5 font-medium pl-6">Visitor</th>
                     <th className="p-5 font-medium hidden sm:table-cell">Nomor Kartu</th>
                     <th className="p-5 font-medium hidden md:table-cell">Tujuan</th>
+                    {showLocation && <th className="p-5 font-medium hidden lg:table-cell">Lokasi</th>}
                     <th className="p-5 font-medium hidden lg:table-cell">Waktu Masuk</th>
                     <th className="p-5 font-medium text-right pr-6">Aksi</th>
                   </tr>
@@ -100,6 +102,7 @@ const ActiveVisitsTab = ({ visits, onCheckout }) => {
                         <span className="inline-block bg-[#D5E3FF] text-[#001B3E] font-bold px-3 py-1.5 rounded-[8px] text-sm">{v.cardNumber}</span>
                       </td>
                       <td className="p-5 hidden md:table-cell text-sm text-[#44474E]">{v.tujuan}</td>
+                      {showLocation && <td className="p-5 hidden lg:table-cell text-sm text-[#44474E]">{v.location || '-'}</td>}
                       <td className="p-5 hidden lg:table-cell text-sm text-[#44474E]">{visitCheckInDateTime(v)}</td>
                       <td className="p-5 text-right pr-6">
                         <Button variant="outlined" className="text-sm" onClick={() => onCheckout(v)}>
@@ -132,6 +135,7 @@ const ActiveVisitsTab = ({ visits, onCheckout }) => {
             <DetailLine label="Waktu Masuk" value={detail ? visitCheckInDateTime(detail) : ''} />
             <DetailLine label="Tujuan" value={detail?.tujuan} />
             <DetailLine label="Keperluan" value={detail?.keperluan} />
+            {showLocation && <DetailLine label="Lokasi" value={detail?.location} />}
           </div>
         </div>
       </ModalBase>

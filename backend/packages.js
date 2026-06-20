@@ -2,7 +2,8 @@
 
 function addPackage(data) {
   if (!data.sender || !data.recipient) throw new Error('Pengirim & penerima wajib diisi.');
-  assertSecurityAt(data, data.location);
+  const loc = requireActiveLocation({ location_id: data.location_id, location: data.location });
+  assertSecurityAt(Object.assign({}, data, { location_id: loc.location_id, location: loc.name }), loc.name);
 
   const id = 'PKG-' + shortId();
   appendRow(SHEETS.PACKAGES, {
@@ -12,7 +13,7 @@ function addPackage(data) {
     type: data.type || 'Lainnya',
     photo_url: data.photo_url || '',
     status: PACKAGE_STATUS.RECEIVED,
-    location: data.location || '',
+    location: loc.name,
     security_email: normEmail(data.actor_email),
     received_at: now(),
     picked_up_at: '',
@@ -31,6 +32,7 @@ function getPackages(data) {
 function pickupPackage(data) {
   const row = readRows(SHEETS.PACKAGES).find((p) => p.package_id === data.package_id);
   if (!row) throw new Error('Paket tidak ditemukan: ' + data.package_id);
+  assertSecurityAt(data, row.location);
   if (row.status === PACKAGE_STATUS.PICKED_UP) throw new Error('Paket sudah diambil.');
   updateCells(SHEETS.PACKAGES, row._row, { status: PACKAGE_STATUS.PICKED_UP, picked_up_at: now() });
   return { ok: true, package_id: data.package_id, status: PACKAGE_STATUS.PICKED_UP };

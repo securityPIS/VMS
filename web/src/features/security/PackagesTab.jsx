@@ -18,7 +18,7 @@ const DetailLine = ({ label, value }) => (
   </div>
 );
 
-const PackagesTab = ({ packages, onAdd, onPickup }) => {
+const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
   const [detail, setDetail] = useState(null);
 
   const openWithKeyboard = (event, item) => {
@@ -63,6 +63,7 @@ const PackagesTab = ({ packages, onAdd, onPickup }) => {
                     <div className="font-medium text-[#1A1B1E] truncate">{p.sender}</div>
                     <div className="text-xs text-[#74777F] mt-0.5 truncate">{p.type} - {p.id}</div>
                     <div className="text-xs text-[#3C6DB2] mt-2 font-medium truncate">Untuk: {p.recipient}</div>
+                    {showLocation && <div className="text-xs text-[#44474E] mt-1 truncate">{p.location || 'Lokasi belum tercatat'}</div>}
                   </div>
                   {p.photo ? (
                     <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-sm border border-[#EAE7EC] cursor-pointer shrink-0" />
@@ -105,6 +106,7 @@ const PackagesTab = ({ packages, onAdd, onPickup }) => {
                   <tr className="bg-[#F4F2F6] text-[#44474E] text-sm border-b border-[#EAE7EC]">
                     <th className="p-5 font-medium pl-6">Detail Paket</th>
                     <th className="p-5 font-medium hidden md:table-cell">Untuk (Penerima)</th>
+                    {showLocation && <th className="p-5 font-medium hidden lg:table-cell">Lokasi</th>}
                     <th className="p-5 font-medium hidden md:table-cell">Waktu Masuk</th>
                     <th className="p-5 font-medium">Status</th>
                     <th className="p-5 font-medium text-right pr-6">Aksi</th>
@@ -129,6 +131,7 @@ const PackagesTab = ({ packages, onAdd, onPickup }) => {
                         </div>
                       </td>
                       <td className="p-5 hidden md:table-cell text-sm text-[#1A1B1E] font-medium">{p.recipient}</td>
+                      {showLocation && <td className="p-5 hidden lg:table-cell text-sm text-[#44474E]">{p.location || '-'}</td>}
                       <td className="p-5 hidden md:table-cell text-sm text-[#44474E]">{joinDateTime(p.date, p.time)}</td>
                       <td className="p-5">
                         <span className={`inline-flex px-3 py-1.5 rounded-full text-xs font-medium ${packageStatusClass(p.status)}`}>
@@ -168,6 +171,7 @@ const PackagesTab = ({ packages, onAdd, onPickup }) => {
             <DetailLine label="Penerima" value={detail?.recipient} />
             <DetailLine label="Jenis" value={detail?.type} />
             <DetailLine label="ID Paket" value={detail?.id} />
+            {showLocation && <DetailLine label="Lokasi" value={detail?.location} />}
             <DetailLine label="Waktu Masuk" value={detail ? joinDateTime(detail.date, detail.time) : ''} />
             <DetailLine label="Status" value={detail ? packageStatusLabel(detail.status) : ''} />
           </div>
