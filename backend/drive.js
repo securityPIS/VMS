@@ -4,8 +4,12 @@
 function uploadPhoto(data) {
   if (!data.base64) throw new Error('Data foto kosong.');
   const folder = getPhotoFolder();
-  const mime = data.mime || 'image/jpeg';
-  const clean = String(data.base64).replace(/^data:[^,]+,/, '');   // buang prefix data URI bila ada
+  const raw = String(data.base64);
+  // Ambil mime dari prefix data URI (mis. data:image/webp;base64,...) agar file
+  // tersimpan & disajikan dengan tipe benar. Fallback: data.mime, lalu JPEG.
+  const m = raw.match(/^data:([^;,]+)[;,]/);
+  const mime = data.mime || (m && m[1]) || 'image/jpeg';
+  const clean = raw.replace(/^data:[^,]+,/, '');   // buang prefix data URI bila ada
   const bytes = Utilities.base64Decode(clean);
   const name = [data.type || 'photo', normEmail(data.email) || 'anon', Date.now()].join('_');
   const file = folder.createFile(Utilities.newBlob(bytes, mime, name));
