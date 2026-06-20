@@ -11,21 +11,31 @@ function getLocations() {
 function getOfficers() {
   return readRows(SHEETS.USERS)
     .filter((u) => u.role === ROLE.SECURITY)
-    .map((u) => ({
-      id: u.officer_id, officer_id: u.officer_id, name: u.name,
-      email: u.email, location: u.location, status: u.status,
-    }));
+    .map((u) => {
+      const loc = resolveLocationForUser(u);
+      return {
+        id: u.officer_id,
+        officer_id: u.officer_id,
+        name: u.name,
+        email: u.email,
+        location_id: loc.location_id,
+        location: loc.name,
+        status: u.status,
+      };
+    });
 }
 
 function addOfficer(data) {
   const email = normEmail(data.email);
-  if (!data.name || !email) throw new Error('Nama & email wajib diisi.');
+  const name = String(data.name || '').trim();
+  if (!name || !email) throw new Error('Nama & email wajib diisi.');
   if (findUserByEmail(email)) throw new Error('Email sudah terdaftar.');
+  const loc = requireActiveLocation({ location_id: data.location_id, location: data.location });
 
   const officerId = nextOfficerId();
   appendRow(SHEETS.USERS, {
-    email, role: ROLE.SECURITY, name: data.name,
-    officer_id: officerId, location: data.location || '', status: USER_STATUS.ACTIVE,
+    email, role: ROLE.SECURITY, name: name,
+    officer_id: officerId, location_id: loc.location_id, location: loc.name, status: USER_STATUS.ACTIVE,
   });
   return { ok: true, officer_id: officerId };
 }
@@ -35,11 +45,36 @@ function updateOfficer(data) {
   if (!row) throw new Error('Petugas tidak ditemukan: ' + data.officer_id);
 
   const patch = {};
+  if (data.name) {
+    const name = String(data.name).trim();
+    if (!name) throw new Error('Nama wajib diisi.');
+    patch.name = name;
+  }
+  if (data.email) {
+    const email = normEmail(data.email);
+    if (!email) throw new Error('Email wajib diisi.');
+    const duplicate = readRows(SHEETS.USERS).find((u) =>
+      normEmail(u.email) === email && u.officer_id !== data.officer_id);
+    if (duplicate) throw new Error('Email sudah terdaftar.');
+    patch.email = email;
+  }
   if (data.status) patch.status = data.status;
-  if (data.location) patch.location = data.location;
+  if (data.location_id || data.location) {
+    const loc = requireActiveLocation({ location_id: data.location_id, location: data.location });
+    patch.location_id = loc.location_id;
+    patch.location = loc.name;
+  }
   if (!Object.keys(patch).length) throw new Error('Tidak ada perubahan.');
 
   updateCells(SHEETS.USERS, row._row, patch);
+  return { ok: true, officer_id: data.officer_id };
+}
+
+function deleteOfficer(data) {
+  const row = readRows(SHEETS.USERS).find((u) =>
+    u.officer_id === data.officer_id && u.role === ROLE.SECURITY);
+  if (!row) throw new Error('Petugas tidak ditemukan: ' + data.officer_id);
+  deleteRow(SHEETS.USERS, row._row);
   return { ok: true, officer_id: data.officer_id };
 }
 

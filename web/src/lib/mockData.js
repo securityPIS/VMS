@@ -2,9 +2,9 @@
 // saat backend disambungkan (lihat lib/api.js). JANGAN dipakai di produksi.
 
 export const MOCK_SECURITY_OFFICERS = [
-  { id: 'SEC-01', name: 'Budi Santoso', email: 'budi.s@security.com', location: 'Gate Utama', status: 'Active' },
-  { id: 'SEC-02', name: 'Agus Pratama', email: 'agus.p@security.com', location: 'Lobi Resepsionis', status: 'Active' },
-  { id: 'SEC-03', name: 'Hendra Wijaya', email: 'hendra.w@security.com', location: 'Gate Logistik', status: 'Inactive' },
+  { id: 'SEC-01', officer_id: 'SEC-01', name: 'Budi Santoso', email: 'budi.s@security.com', location_id: 'LOC-01', location: 'Gate Utama', status: 'Active' },
+  { id: 'SEC-02', officer_id: 'SEC-02', name: 'Agus Pratama', email: 'agus.p@security.com', location_id: 'LOC-02', location: 'Lobi Resepsionis', status: 'Active' },
+  { id: 'SEC-03', officer_id: 'SEC-03', name: 'Hendra Wijaya', email: 'hendra.w@security.com', location_id: 'LOC-03', location: 'Gate Logistik', status: 'Inactive' },
 ];
 
 export const MOCK_PACKAGES = [
@@ -78,7 +78,7 @@ export function resolveRoleFromEmail(email) {
   const officer = MOCK_SECURITY_OFFICERS.find(
     (o) => o.email.toLowerCase() === e && o.status === 'Active',
   );
-  if (officer) return { role: 'security', name: officer.name, email: e, location: officer.location };
+  if (officer) return { role: 'security', name: officer.name, email: e, location_id: officer.location_id, location: officer.location };
 
   const ret = MOCK_RETURNING_VISITORS.find((v) => v.email.toLowerCase() === e);
   if (ret) return { role: 'visitor', type: 'returning', name: ret.name, asal: ret.asal, email: e };

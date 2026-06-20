@@ -56,7 +56,7 @@ function seedAdmin() {
   if (findUserByEmail(normEmail(SEED_ADMIN_EMAIL))) return;
   appendRow(SHEETS.USERS, {
     email: normEmail(SEED_ADMIN_EMAIL), role: ROLE.ADMIN, name: SEED_ADMIN_NAME,
-    officer_id: '', location: '', status: USER_STATUS.ACTIVE,
+    officer_id: '', location_id: '', location: '', status: USER_STATUS.ACTIVE,
   });
 }
 

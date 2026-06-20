@@ -92,6 +92,12 @@ function updateCells(name, rowNum, patch) {
   range.setValues([rowVals]);
 }
 
+// Hapus satu baris transaksi/master secara presisi.
+function deleteRow(name, rowNum) {
+  ensureHeaders(name);
+  getSheet(name).deleteRow(rowNum);
+}
+
 // Buang field internal `_row` sebelum dikirim sebagai respons.
 function stripRow(obj) {
   const o = Object.assign({}, obj);

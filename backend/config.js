@@ -24,7 +24,7 @@ const HEADERS = {
   Visits: ['visit_id', 'visitor_id', 'email', 'nama', 'keperluan', 'tujuan', 'location',
     'selfie_url', 'status', 'card_number', 'reject_reason', 'confirm_notes', 'security_email',
     'created_at', 'checkin_at', 'checkout_at', 'schedule_type', 'scheduled_at'],
-  Users: ['email', 'role', 'name', 'officer_id', 'location', 'status'],
+  Users: ['email', 'role', 'name', 'officer_id', 'location_id', 'location', 'status'],
   Locations: ['location_id', 'name', 'active'],
   Packages: ['package_id', 'sender', 'recipient', 'type', 'photo_url', 'status',
     'location', 'security_email', 'received_at', 'picked_up_at'],

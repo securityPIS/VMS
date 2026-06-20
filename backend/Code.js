@@ -47,6 +47,7 @@ function dispatch(action, data) {
     case 'getOfficers': return getOfficers(data);
     case 'addOfficer': return addOfficer(data);
     case 'updateOfficer': return updateOfficer(data);
+    case 'deleteOfficer': return deleteOfficer(data);
     default: throw new Error('Action tidak dikenal: ' + action);
   }
 }

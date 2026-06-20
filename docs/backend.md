@@ -24,7 +24,7 @@ React (Vercel) ──POST text/plain {action, secret, ...}──► doPost (Code
 | `visitors.js` | `getVisitorByEmail`, `submitVisit` (buat Visitor + Visit PENDING). |
 | `visits.js` | `getPendingVisits`, `getActiveVisits`, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `checkIn` menyimpan `confirm_notes` dan mengirim email konfirmasi; `enrichVisits` (join `asal`+`ktp_photo_url` dari Visitors). |
 | `packages.js` | `addPackage`, `getPackages`, `pickupPackage`. |
-| `officers.js` | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer` (whitelist security). |
+| `officers.js` | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer`, `deleteOfficer` (whitelist security; lokasi divalidasi ke sheet `Locations`). |
 | `analytics.js` | `getDashboardStats` (metrik + weekly/dept), `getVisitorTimeline`. |
 | `drive.js` | `uploadPhoto` (folder privat), `servePhoto` (getPhoto ber-secret). |
 | `email.js` | `sendConfirmEmail` dan `sendRejectEmail` (MailApp). |
@@ -45,7 +45,7 @@ Request: `{ action, secret, ...payload }`. Berikut payload & hasil utama:
 
 | Action | Payload | Hasil |
 |---|---|---|
-| `getRole` | `email` | `{ role, name, email, type?, location?, officer_id?, asal? }` |
+| `getRole` | `email` | `{ role, name, email, type?, location_id?, location?, officer_id?, asal? }` |
 | `getVisitorByEmail` | `email` | `{ visitor }` (atau `null`) |
 | `uploadPhoto` | `base64, type, email, mime?` | `{ id, url }` |
 | `submitVisit` | `email, name?, ktp?, asal?, tujuan, keperluan, location, ktp_photo_url?, selfie_url?` | `{ visit_id, status }` |
@@ -61,9 +61,10 @@ Request: `{ action, secret, ...payload }`. Berikut payload & hasil utama:
 | `getHistory` | `location?, from?, to?` | `[visit…]` |
 | `getDashboardStats` | — | `{ totalMonth, doneToday, rejected, activeNow, weekly[], dept[] }` |
 | `getVisitorTimeline` | `search?` | `[{ email, nama, visits[] }]` |
-| `getOfficers` | — | `[{ officer_id, name, email, location, status }]` |
-| `addOfficer` | `name, email, location` | `{ officer_id }` |
-| `updateOfficer` | `officer_id, status?, location?` | `{ officer_id }` |
+| `getOfficers` | — | `[{ officer_id, name, email, location_id, location, status }]` |
+| `addOfficer` | `name, email, location_id` | `{ officer_id }` |
+| `updateOfficer` | `officer_id, name?, email?, status?, location_id?` | `{ officer_id }` |
+| `deleteOfficer` | `officer_id` | `{ officer_id }` |
 
 > Catatan: aksi security menerima `actor_email` opsional untuk enforcement NFR-08.
 

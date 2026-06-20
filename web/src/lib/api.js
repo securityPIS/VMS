@@ -80,6 +80,18 @@ function nextMockOfficerId() {
   const max = nums.length ? Math.max(...nums) : 0;
   return 'SEC-' + String(max + 1).padStart(2, '0');
 }
+function mockLocations() {
+  return LOCATIONS.map((name, i) => ({ location_id: `LOC-${String(i + 1).padStart(2, '0')}`, name }));
+}
+function resolveMockLocation(data = {}) {
+  const locationId = String(data.location_id || data.locationId || '').trim();
+  const locationName = String(data.location || '').trim();
+  const loc = mockLocations().find((item) =>
+    (locationId && item.location_id === locationId) ||
+    (locationName && item.name.toLowerCase() === locationName.toLowerCase()));
+  if (!loc) throw new Error('Lokasi penugasan tidak valid atau tidak aktif.');
+  return loc;
+}
 function mockStats() {
   const v = store.visits;
   return {
@@ -98,7 +110,7 @@ export const api = {
   getRole: (email) => (USE_MOCK ? Promise.resolve(resolveRoleFromEmail(email)) : post('getRole', { email })),
 
   getLocations: async () => {
-    if (USE_MOCK) return LOCATIONS.map((name, i) => ({ location_id: `LOC-${i + 1}`, name }));
+    if (USE_MOCK) return mockLocations();
     return post('getLocations');
   },
 
@@ -249,8 +261,17 @@ export const api = {
       if (store.officers.some((o) => o.email.toLowerCase() === String(data.email).toLowerCase())) {
         throw new Error('Email sudah terdaftar.');
       }
+      const loc = resolveMockLocation(data);
       const id = nextMockOfficerId();
-      store.officers.push({ id, officer_id: id, name: data.name, email: data.email, location: data.location, status: 'Active' });
+      store.officers.push({
+        id,
+        officer_id: id,
+        name: data.name,
+        email: data.email,
+        location_id: loc.location_id,
+        location: loc.name,
+        status: 'Active',
+      });
       return { ok: true, officer_id: id };
     }
     return post('addOfficer', data);
@@ -259,10 +280,29 @@ export const api = {
     if (USE_MOCK) {
       const o = store.officers.find((x) => (x.officer_id || x.id) === data.officer_id);
       if (!o) throw new Error('Petugas tidak ditemukan: ' + data.officer_id);
+      if (data.email && store.officers.some((x) =>
+        String(x.email).toLowerCase() === String(data.email).toLowerCase() && (x.officer_id || x.id) !== data.officer_id)) {
+        throw new Error('Email sudah terdaftar.');
+      }
+      if (data.name) o.name = data.name;
+      if (data.email) o.email = data.email;
       if (data.status) o.status = data.status;
-      if (data.location) o.location = data.location;
+      if (data.location_id || data.location) {
+        const loc = resolveMockLocation(data);
+        o.location_id = loc.location_id;
+        o.location = loc.name;
+      }
       return { ok: true };
     }
     return post('updateOfficer', data);
+  },
+  deleteOfficer: async (officerId) => {
+    if (USE_MOCK) {
+      const idx = store.officers.findIndex((x) => (x.officer_id || x.id) === officerId);
+      if (idx < 0) throw new Error('Petugas tidak ditemukan: ' + officerId);
+      store.officers.splice(idx, 1);
+      return { ok: true };
+    }
+    return post('deleteOfficer', { officer_id: officerId });
   },
 };

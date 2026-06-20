@@ -105,8 +105,9 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 | `AdminDashboard.jsx` | ✅ | Container: muat petugas & riwayat via `api.*`, aksi + refetch, loading/error. |
 | `AdminSidebar.jsx` | ✅ | Navigasi gelap (dashboard/assignment/jejak visitor). |
 | `DashboardOverviewTab.jsx` | ✅ | Kartu metrik + grafik tren (bar) & distribusi (pie) dari `api.getDashboardStats`. |
-| `OfficerAssignmentTab.jsx` | ✅ | Kartu petugas + aktif/nonaktif + lokasi. |
-| `AddOfficerModal.jsx` | ✅ | Form tambah petugas (nama/email/lokasi). |
+| `OfficerAssignmentTab.jsx` | ✅ | Kartu petugas + menu titik tiga untuk edit/delete + aktif/nonaktif + lokasi. |
+| `AddOfficerModal.jsx` | ✅ | Form tambah/edit petugas (nama/email/lokasi dari master `Locations`). |
+| `DeleteOfficerModal.jsx` | ✅ | Konfirmasi hapus petugas dari whitelist security. |
 | `VisitorTimelineTab.jsx` | ✅ | Pencarian + kartu visitor expandable jadi timeline. |
 
 ---
@@ -125,7 +126,7 @@ Kode ✅ ditulis (modular, ≤500 baris/file). ⏳ Belum di-deploy/di-setup (lih
 | `backend/visitors.js` | ✅ | `getVisitorByEmail`, `submitVisit`. |
 | `backend/visits.js` | ✅ | Antrean, `checkIn` + catatan konfirmasi/email, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `enrichVisits` (join asal/foto KTP). |
 | `backend/packages.js` | ✅ | `addPackage`, `getPackages`, `pickupPackage`. |
-| `backend/officers.js` | ✅ | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer`. |
+| `backend/officers.js` | ✅ | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer`, `deleteOfficer` + validasi lokasi aktif. |
 | `backend/analytics.js` | ✅ | `getDashboardStats`, `getVisitorTimeline`. |
 | `backend/drive.js` | ✅ | `uploadPhoto` (Drive privat) + `servePhoto` (getPhoto ber-secret). |
 | `backend/email.js` | ✅ | `sendConfirmEmail` dan `sendRejectEmail` (MailApp). |

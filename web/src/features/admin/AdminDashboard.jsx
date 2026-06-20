@@ -3,12 +3,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
-import { LOCATIONS } from '../../lib/constants';
 import AdminSidebar from './AdminSidebar';
 import DashboardOverviewTab from './DashboardOverviewTab';
 import OfficerAssignmentTab from './OfficerAssignmentTab';
 import VisitorTimelineTab from './VisitorTimelineTab';
 import AddOfficerModal from './AddOfficerModal';
+import DeleteOfficerModal from './DeleteOfficerModal';
 
 const TITLES = {
   dashboard: 'Dashboard Statistik',
@@ -16,23 +16,32 @@ const TITLES = {
   visitor: 'Rekam Jejak Kunjungan',
 };
 
+const emptyOfficerDraft = (locations) => {
+  const loc = locations[0] || { location_id: '', name: '' };
+  return { name: '', email: '', location_id: loc.location_id, location: loc.name };
+};
+
 const AdminDashboard = ({ user, onLogout }) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [officers, setOfficers] = useState([]);
+  const [locations, setLocations] = useState([]);
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [showAddOfficer, setShowAddOfficer] = useState(false);
-  const [newOfficer, setNewOfficer] = useState({ name: '', email: '', location: LOCATIONS[0] });
+  const [showOfficerModal, setShowOfficerModal] = useState(false);
+  const [editingOfficer, setEditingOfficer] = useState(null);
+  const [deletingOfficer, setDeletingOfficer] = useState(null);
+  const [officerDraft, setOfficerDraft] = useState(emptyOfficerDraft([]));
 
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const [o, h] = await Promise.all([api.getOfficers(), api.getHistory({})]);
+      const [o, h, locs] = await Promise.all([api.getOfficers(), api.getHistory({}), api.getLocations()]);
       setOfficers(o);
       setVisits(h);
+      setLocations(locs);
     } catch (err) {
       setError(err.message || 'Gagal memuat data.');
     } finally {
@@ -56,11 +65,48 @@ const AdminDashboard = ({ user, onLogout }) => {
     }
   };
 
-  const handleAddOfficer = () => {
-    if (!newOfficer.name || !newOfficer.email) return;
-    run(() => api.addOfficer(newOfficer), () => {
-      setShowAddOfficer(false);
-      setNewOfficer({ name: '', email: '', location: LOCATIONS[0] });
+  const openAddOfficer = () => {
+    setEditingOfficer(null);
+    setOfficerDraft(emptyOfficerDraft(locations));
+    setShowOfficerModal(true);
+  };
+
+  const openEditOfficer = (officer) => {
+    setEditingOfficer(officer);
+    setOfficerDraft({
+      name: officer.name || '',
+      email: officer.email || '',
+      location_id: officer.location_id || '',
+      location: officer.location || '',
+    });
+    setShowOfficerModal(true);
+  };
+
+  const closeOfficerModal = () => {
+    setShowOfficerModal(false);
+    setEditingOfficer(null);
+    setOfficerDraft(emptyOfficerDraft(locations));
+  };
+
+  const handleSaveOfficer = () => {
+    if (!officerDraft.name || !officerDraft.email || !officerDraft.location_id) return;
+    const payload = {
+      name: officerDraft.name.trim(),
+      email: officerDraft.email.trim(),
+      location_id: officerDraft.location_id,
+      location: officerDraft.location,
+    };
+    if (editingOfficer) {
+      run(() => api.updateOfficer({ officer_id: editingOfficer.officer_id || editingOfficer.id, ...payload }), closeOfficerModal);
+      return;
+    }
+    run(() => api.addOfficer(payload), closeOfficerModal);
+  };
+
+  const handleDeleteOfficer = () => {
+    if (!deletingOfficer) return;
+    run(() => api.deleteOfficer(deletingOfficer.officer_id || deletingOfficer.id), () => {
+      setDeletingOfficer(null);
     });
   };
 
@@ -93,7 +139,13 @@ const AdminDashboard = ({ user, onLogout }) => {
 
         {activeTab === 'assignment' && (
           loading ? <LoadingBlock /> : (
-            <OfficerAssignmentTab officers={officers} onAdd={() => setShowAddOfficer(true)} onToggle={toggleOfficer} />
+            <OfficerAssignmentTab
+              officers={officers}
+              onAdd={openAddOfficer}
+              onEdit={openEditOfficer}
+              onDelete={setDeletingOfficer}
+              onToggle={toggleOfficer}
+            />
           )
         )}
 
@@ -103,11 +155,19 @@ const AdminDashboard = ({ user, onLogout }) => {
       </main>
 
       <AddOfficerModal
-        isOpen={showAddOfficer}
-        value={newOfficer}
-        setValue={setNewOfficer}
-        onSave={handleAddOfficer}
-        onClose={() => setShowAddOfficer(false)}
+        isOpen={showOfficerModal}
+        mode={editingOfficer ? 'edit' : 'add'}
+        value={officerDraft}
+        setValue={setOfficerDraft}
+        locations={locations}
+        onSave={handleSaveOfficer}
+        onClose={closeOfficerModal}
+        busy={busy}
+      />
+      <DeleteOfficerModal
+        officer={deletingOfficer}
+        onConfirm={handleDeleteOfficer}
+        onClose={() => setDeletingOfficer(null)}
         busy={busy}
       />
     </div>

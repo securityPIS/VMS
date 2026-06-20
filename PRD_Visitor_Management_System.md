@@ -270,7 +270,8 @@ RECEIVED ──ambil──> PICKED_UP
 | `role` | enum | security / admin |
 | `name` | string | Nama petugas/admin |
 | `officer_id` | string | ID petugas (mis. `SEC-01`), untuk role security |
-| `location` | string | Lokasi penugasan (relasi ke `Locations`), untuk role security |
+| `location_id` | string | ID lokasi penugasan (relasi ke `Locations`), untuk role security |
+| `location` | string | Nama lokasi penugasan untuk display/cache |
 | `status` | enum | Active / Inactive (petugas Inactive tidak bisa login) |
 
 > Sheet `Users` sekaligus menjadi sumber data **Assignment Petugas** di panel admin (baris ber-`role=security`).
@@ -321,8 +322,9 @@ Semua request melalui `doPost` dengan parameter `action`. Format respons JSON.
 | `getDashboardStats` | Admin | Metrik & data grafik (tren, distribusi) | filter periode |
 | `getVisitorTimeline` | Admin | Jejak per-visitor (grouped) | `search?` |
 | `getOfficers` | Admin | Daftar petugas + lokasi + status | — |
-| `addOfficer` | Admin | Tambah petugas (→ whitelist security) | `name`, `email`, `location` |
-| `updateOfficer` | Admin | Ubah status/lokasi petugas | `officer_id`, `status?`, `location?` |
+| `addOfficer` | Admin | Tambah petugas (→ whitelist security) | `name`, `email`, `location_id` |
+| `updateOfficer` | Admin | Ubah data/status/lokasi petugas | `officer_id`, `name?`, `email?`, `status?`, `location_id?` |
+| `deleteOfficer` | Admin | Hapus petugas dari whitelist security | `officer_id` |
 
 ---
 
