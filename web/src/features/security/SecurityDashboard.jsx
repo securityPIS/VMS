@@ -176,7 +176,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F2F6] flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen flex flex-col md:flex-row font-sans">
       <SecuritySidebar
         user={{ ...user, location: loc }}
         onLogout={onLogout}
@@ -188,7 +188,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
 
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         <div className="mb-6 md:mb-8 flex items-center justify-between gap-3">
-          <h1 className="text-2xl md:text-3xl font-normal text-[#1A1B1E]">{TITLES[activeTab]}</h1>
+          <h1 className="text-3xl md:text-4xl text-display">{TITLES[activeTab]}</h1>
           <div className="flex items-center gap-3 shrink-0">
             {busy && <Loader2 className="text-[#3C6DB2] animate-spin" size={22} />}
             {activeTab === 'paket' && (

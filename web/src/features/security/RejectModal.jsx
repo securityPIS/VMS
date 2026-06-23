@@ -17,22 +17,22 @@ const RejectModal = ({ visit, rejectReason, setRejectReason, onConfirm, onClose,
     }
   >
     <div className="space-y-4 pt-2">
-      <div className="bg-[#FFDAD6]/30 p-5 rounded-[20px] border border-[#FFDAD6]">
+      <div className="bg-[#FFDAD6]/40 p-5 rounded-2xl border border-[#FFDAD6]">
         <p className="text-sm text-[#410002]">
           Visitor: <strong className="text-base">{visit?.name}</strong>
         </p>
       </div>
       <div className="w-full">
-        <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Alasan Penolakan (Wajib)</label>
+        <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Alasan Penolakan (Wajib)</label>
         <textarea
-          className="w-full px-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#BA313B] text-[#1A1B1E] min-h-[100px] resize-none"
+          className="w-full px-4 py-3 bg-white/70 border border-line rounded-2xl outline-none text-ink transition-all duration-200 hover:border-[#E9A6AB] focus:border-[#BA313B] focus:bg-white focus:ring-4 focus:ring-[#BA313B]/15 min-h-[100px] resize-none"
           placeholder="Contoh: KTP tidak jelas, tujuan tidak ada di tempat..."
           value={rejectReason}
           onChange={(e) => setRejectReason(e.target.value)}
           autoFocus
         />
       </div>
-      <p className="text-xs text-[#74777F] ml-1">Alasan ini akan dikirimkan otomatis ke email visitor.</p>
+      <p className="text-xs text-ink-muted ml-1">Alasan ini akan dikirimkan otomatis ke email visitor.</p>
     </div>
   </ModalBase>
 );

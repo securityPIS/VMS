@@ -13,7 +13,7 @@ const NAV = [
 ];
 
 const AdminSidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount = 0, activeCount = 0 }) => (
-  <aside className="w-full md:w-72 bg-[#1A1B1E] text-white flex flex-col md:h-screen sticky top-0 z-10 md:rounded-r-[32px] shadow-lg">
+  <aside className="w-full md:w-72 bg-ink-gradient text-white flex flex-col md:h-screen sticky top-0 z-10 md:rounded-r-[32px] shadow-float ring-1 ring-white/5">
     <div className="p-6 md:pb-8 flex items-center justify-between md:justify-center">
       <BrandLogo className="h-8 brightness-0 invert" />
       <button className="md:hidden text-white/70 hover:text-white" onClick={onLogout}>
@@ -22,12 +22,12 @@ const AdminSidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount = 
     </div>
 
     <div className="px-6 py-4 flex items-center gap-4 border-b border-white/10 mb-4 pb-6">
-      <div className="w-12 h-12 rounded-full bg-[#3C6DB2] text-white flex items-center justify-center font-medium text-lg">
+      <div className="w-12 h-12 rounded-full bg-brand-gradient text-white flex items-center justify-center font-medium text-lg shadow-premium ring-1 ring-white/20">
         {user.name.charAt(0)}
       </div>
       <div>
-        <div className="font-medium text-base">{user.name}</div>
-        <div className="text-sm text-white/60">Administrator</div>
+        <div className="font-semibold text-base">{user.name}</div>
+        <div className="text-xs uppercase tracking-[0.18em] text-gold-soft/80 mt-0.5">Administrator</div>
       </div>
     </div>
 
@@ -38,8 +38,8 @@ const AdminSidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount = 
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center justify-between gap-3 px-4 py-3.5 rounded-full transition-colors whitespace-nowrap text-sm font-medium ${
-              activeTab === key ? 'bg-[#3C6DB2] text-white' : 'text-white/60 hover:bg-white/5'
+            className={`flex items-center justify-between gap-3 px-4 py-3.5 rounded-2xl transition-all duration-200 whitespace-nowrap text-sm font-medium ${
+              activeTab === key ? 'bg-brand-gradient text-white shadow-premium ring-1 ring-white/10' : 'text-white/60 hover:bg-white/5 hover:text-white'
             }`}
           >
             <span className="flex items-center gap-3">

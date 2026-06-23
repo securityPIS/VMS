@@ -86,23 +86,54 @@ const LoginScreen = ({ onLogin }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F2F6] flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#FDFBFF] rounded-[28px] shadow-sm p-8 flex flex-col items-center text-center">
-        <BrandLogo className="h-12 mb-8 justify-center" />
-        <h1 className="text-2xl font-normal text-[#1A1B1E] mb-2">Selamat Datang</h1>
-        <p className="text-[#44474E] mb-8 text-sm">
-          Masuk dengan akun Google Anda. Sistem akan mengenali peran Anda secara otomatis.
-        </p>
+    <div className="min-h-screen lg:grid lg:grid-cols-2 flex flex-col">
+      {/* Panel brand bergaya editorial mewah (kiri di desktop, atas di mobile). */}
+      <aside className="relative overflow-hidden bg-ink-gradient text-white px-8 py-12 lg:p-16 flex flex-col justify-between min-h-[34vh] lg:min-h-screen">
+        <div className="absolute inset-0 opacity-[0.18] pointer-events-none"
+          style={{ backgroundImage: 'radial-gradient(40rem 40rem at 80% -10%, #3C6DB2, transparent 60%), radial-gradient(30rem 30rem at -10% 110%, #B8924A, transparent 55%)' }} />
+        <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+          style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)', backgroundSize: '44px 44px' }} />
+        <div className="relative">
+          <BrandLogo className="h-10 brightness-0 invert" />
+        </div>
+        <div className="relative">
+          <p className="eyebrow text-gold-soft mb-5">Visitor Management System</p>
+          <h2 className="text-display text-white text-4xl lg:text-5xl leading-[1.05] mb-5">
+            Pengalaman kunjungan<br className="hidden lg:block" /> yang aman &amp; berkelas.
+          </h2>
+          <p className="text-white/70 max-w-md leading-relaxed">
+            Registrasi, verifikasi, dan pemantauan tamu dalam satu sistem terintegrasi —
+            dirancang dengan standar keamanan dan kenyamanan terbaik.
+          </p>
+        </div>
+        <div className="relative hidden lg:flex items-center gap-6 text-xs text-white/50 tracking-wide">
+          <span>Keamanan Terverifikasi</span>
+          <span className="h-1 w-1 rounded-full bg-gold-soft/60" />
+          <span>Sesuai UU PDP</span>
+          <span className="h-1 w-1 rounded-full bg-gold-soft/60" />
+          <span>PT Pertamina</span>
+        </div>
+      </aside>
+
+      {/* Panel autentikasi. */}
+      <main className="flex-1 flex items-center justify-center p-6 lg:p-12">
+        <div className="w-full max-w-md surface-raised rounded-[28px] p-8 lg:p-10 flex flex-col items-center text-center">
+          <p className="eyebrow mb-3">Selamat Datang</p>
+          <h1 className="text-display text-3xl mb-3">Masuk ke Akun Anda</h1>
+          <div className="rule-gold w-24 mb-5" />
+          <p className="text-ink-muted mb-8 text-sm leading-relaxed max-w-sm">
+            Gunakan akun Google Anda. Sistem akan mengenali peran Anda secara otomatis.
+          </p>
 
         {error && (
-          <div role="alert" className="w-full mb-4 px-4 py-3 rounded-[12px] bg-[#FBE9EA] border border-[#E9A6AB] text-[#7A1D24] text-sm text-left">
+          <div role="alert" className="w-full mb-4 px-4 py-3 rounded-2xl bg-[#FBE9EA] border border-[#E9A6AB] text-[#7A1D24] text-sm text-left">
             {error}
           </div>
         )}
 
         <Button
           variant="outlined"
-          className={`w-full h-14 text-base bg-white text-[#1A1B1E] border-[#CFC7D2] ${USE_MOCK ? '' : 'hidden'}`}
+          className={`w-full h-14 text-base bg-white text-ink ${USE_MOCK ? '' : 'hidden'}`}
           disabled={loading}
           onClick={handleGoogleMock}
         >
@@ -117,9 +148,9 @@ const LoginScreen = ({ onLogin }) => {
         )}
 
         {USE_MOCK && (
-          <div className="w-full mt-6 pt-5 border-t border-dashed border-[#CFC7D2]">
-            <p className="text-xs font-medium text-[#74777F] mb-3">
-              Mode demo (backend belum aktif) — masuk sebagai:
+          <div className="w-full mt-6 pt-5 border-t border-dashed border-line">
+            <p className="eyebrow mb-3">
+              Mode demo — masuk sebagai
             </p>
             <div className="grid grid-cols-2 gap-2 mb-3">
               {DEV_LOGIN_PRESETS.map((p) => (
@@ -128,7 +159,7 @@ const LoginScreen = ({ onLogin }) => {
                   type="button"
                   disabled={loading}
                   onClick={() => signIn(p.email)}
-                  className="px-3 py-2 text-xs font-medium rounded-full border border-[#CFC7D2] text-[#3C6DB2] hover:bg-[#1A1B1E]/5 disabled:opacity-50 transition-colors"
+                  className="px-3 py-2 text-xs font-medium rounded-full border border-line bg-white/60 text-brand-700 hover:border-brand-300 hover:bg-white disabled:opacity-50 transition-all"
                 >
                   {p.label}
                 </button>
@@ -149,10 +180,11 @@ const LoginScreen = ({ onLogin }) => {
           </div>
         )}
 
-        <p className="text-xs text-[#74777F] mt-8 max-w-xs">
+        <p className="text-xs text-ink-muted mt-8 max-w-xs leading-relaxed">
           Dengan masuk, Anda menyetujui Kebijakan Privasi serta Syarat &amp; Ketentuan kami (sesuai UU PDP).
         </p>
-      </div>
+        </div>
+      </main>
     </div>
   );
 };

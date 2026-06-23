@@ -11,25 +11,27 @@ const NAV = [
 ];
 
 const SecuritySidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount, activeCount }) => (
-  <aside className="w-full md:w-72 bg-[#FDFBFF] flex flex-col md:h-screen sticky top-0 z-10 md:rounded-r-[32px] shadow-sm border-r border-[#EAE7EC]">
+  <aside className="w-full md:w-72 bg-white/80 backdrop-blur-xl flex flex-col md:h-screen sticky top-0 z-10 md:rounded-r-[32px] shadow-premium border-r border-white/70 ring-1 ring-ink/[0.03]">
     <div className="p-6 md:pb-4 flex items-center justify-between md:justify-center">
       <BrandLogo className="h-8" />
-      <button className="md:hidden text-[#44474E]" onClick={onLogout}>
+      <button className="md:hidden text-ink-soft" onClick={onLogout}>
         <LogOut size={24} />
       </button>
     </div>
 
     <div className="px-6 py-4 flex items-center gap-3">
-      <div className="w-12 h-12 rounded-full bg-[#1A1B1E] text-white flex items-center justify-center font-medium text-lg">
+      <div className="w-12 h-12 rounded-full bg-ink-gradient text-white flex items-center justify-center font-medium text-lg shadow-premium ring-1 ring-white/10">
         {user.name.charAt(0)}
       </div>
       <div>
-        <div className="font-medium text-[#1A1B1E]">{user.name}</div>
-        <div className="text-xs text-[#74777F]">Petugas — {user.location || 'Semua Lokasi'}</div>
+        <div className="font-semibold text-ink">{user.name}</div>
+        <div className="text-xs text-ink-muted">Petugas — {user.location || 'Semua Lokasi'}</div>
       </div>
     </div>
 
-    <nav className="flex-1 px-4 py-4 flex flex-row md:flex-col gap-2 overflow-x-auto">
+    <div className="mx-6 mb-2 rule-gold hidden md:block" />
+
+    <nav className="flex-1 px-4 py-4 flex flex-row md:flex-col gap-1.5 overflow-x-auto">
       {NAV.map(({ key, label, icon: Icon }) => {
         const active = activeTab === key;
         const count = key === 'antrean' ? pendingCount : key === 'aktif' ? activeCount : 0;
@@ -37,8 +39,8 @@ const SecuritySidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount
           <button
             key={key}
             onClick={() => setActiveTab(key)}
-            className={`flex items-center justify-between px-4 py-3.5 rounded-full transition-colors whitespace-nowrap text-sm font-medium ${
-              active ? 'bg-[#D5E3FF] text-[#001B3E]' : 'text-[#44474E] hover:bg-[#1A1B1E]/5'
+            className={`flex items-center justify-between px-4 py-3.5 rounded-2xl transition-all duration-200 whitespace-nowrap text-sm font-medium ${
+              active ? 'bg-brand-gradient text-white shadow-premium' : 'text-ink-soft hover:bg-ink/[0.05]'
             }`}
           >
             <span className="flex items-center gap-3">

@@ -6,11 +6,11 @@ const HistoryTab = ({ visits, showLocation = false }) => {
   const sorted = sortVisitsNewest(visits);
 
   return (
-    <div className="bg-[#FDFBFF] rounded-[28px] shadow-sm border border-[#EAE7EC] overflow-hidden animate-in fade-in slide-in-from-bottom-2">
+    <div className="bg-white/85 backdrop-blur-xl rounded-[28px] shadow-card border border-line overflow-hidden animate-in fade-in slide-in-from-bottom-2">
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
-            <tr className="bg-[#F4F2F6] text-[#44474E] text-sm border-b border-[#EAE7EC]">
+            <tr className="bg-ink/[0.03] text-[#44474E] text-sm border-b border-line">
               <th className="p-5 font-medium pl-6">Visitor</th>
               <th className="p-5 font-medium hidden md:table-cell">Waktu</th>
               {showLocation && <th className="p-5 font-medium hidden lg:table-cell">Lokasi</th>}
@@ -20,7 +20,7 @@ const HistoryTab = ({ visits, showLocation = false }) => {
           </thead>
           <tbody>
             {sorted.map((v) => (
-              <tr key={v.id} className="border-b border-[#EAE7EC] hover:bg-[#F4F2F6]/50 transition-colors">
+              <tr key={v.id} className="border-b border-line hover:bg-ink/[0.04] transition-colors">
                 <td className="p-5 pl-6">
                   <div className="font-medium text-[#1A1B1E] text-base">{v.name}</div>
                   <div className="text-xs text-[#74777F] mt-0.5">{visitCreatedDateTime(v)}</div>
