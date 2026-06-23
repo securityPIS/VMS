@@ -11,8 +11,35 @@ function doPost(e) {
     return jsonOutput(result === undefined ? { ok: true } : result);
   } catch (err) {
     console.error(err && err.stack ? err.stack : err);
-    return jsonOutput({ error: 'Permintaan tidak dapat diproses.' });
+    return jsonOutput(errorResponse(err));
   }
+}
+
+// Petakan exception ke respons klien yang aman + ber-kategori.
+// Detail lengkap tetap di log server (console.error di atas); klien hanya
+// menerima pesan yang sudah dirancang ramah/aman, plus `code` untuk diagnosis.
+// Tanpa ini, semua kegagalan tampak sama ("Permintaan tidak dapat diproses.")
+// sehingga sulit membedakan salah konfigurasi vs token vs otorisasi.
+function errorResponse(err) {
+  const message = String((err && err.message) || '');
+  // Setup/konfigurasi server belum lengkap (Script Properties / sheet belum ada).
+  if (/belum diset|setupSpreadsheet|Sheet tidak ditemukan/i.test(message)) {
+    return { error: 'Server belum dikonfigurasi sepenuhnya. Hubungi administrator.', code: 'SERVER_NOT_CONFIGURED' };
+  }
+  // Masalah token/identitas Google → minta login ulang atau cek OAuth Client ID.
+  if (/Token Google|Issuer token|Audience token|Email Google|kedaluwarsa/i.test(message)) {
+    return { error: message, code: 'AUTH' };
+  }
+  // Throttle rate-limit.
+  if (/Terlalu banyak permintaan/i.test(message)) {
+    return { error: message, code: 'RATE_LIMITED' };
+  }
+  // Otorisasi (peran/lokasi/akun nonaktif).
+  if (/Akses ditolak|nonaktif|di luar penugasan|tidak valid atau tidak aktif/i.test(message)) {
+    return { error: message, code: 'FORBIDDEN' };
+  }
+  // Default: jangan bocorkan detail tak terduga ke klien.
+  return { error: 'Permintaan tidak dapat diproses.', code: 'INTERNAL' };
 }
 
 function doGet() {
