@@ -3,12 +3,12 @@
 // ada pemilihan peran manual. Email petugas security di-assign oleh admin
 // (panel admin), itulah yang dipakai getRole untuk mengenali security.
 // Panel "Mode demo" hanya tampil saat USE_MOCK (backend belum aktif).
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
 import { api, USE_MOCK } from '../lib/api';
-import { signInWithGoogle } from '../lib/googleAuth';
+import { renderGoogleSignInButton } from '../lib/googleAuth';
 import { DEV_LOGIN_PRESETS } from '../lib/mockData';
 
 const GoogleIcon = () => (
@@ -21,6 +21,7 @@ const GoogleIcon = () => (
 );
 
 const LoginScreen = ({ onLogin }) => {
+  const googleButtonRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [devEmail, setDevEmail] = useState('');
@@ -38,21 +39,44 @@ const LoginScreen = ({ onLogin }) => {
     }
   };
 
-  const handleGoogle = async () => {
-    // MODE DEMO: anggap login Google sukses sebagai tamu baru (jalur happy path).
-    // Uji peran lain lewat panel demo di bawah.
-    if (USE_MOCK) return signIn('tamu.baru@gmail.com');
-    setError('');
-    setLoading(true);
-    try {
-      const auth = await signInWithGoogle();
-      api.setAuthSession(auth.idToken, auth.expiresAt, auth.email);
-      await signIn(auth.email);
-    } catch (err) {
-      api.clearAuthSession();
-      setError(err.message);
-      setLoading(false);
-    }
+  useEffect(() => {
+    if (USE_MOCK) return undefined;
+    let alive = true;
+    let cleanup = null;
+    renderGoogleSignInButton(
+      googleButtonRef.current,
+      async (auth) => {
+        if (!alive) return;
+        setError('');
+        setLoading(true);
+        try {
+          api.setAuthSession(auth.idToken, auth.expiresAt, auth.email);
+          const user = await api.getRole(auth.email);
+          if (alive) onLogin(user);
+        } catch (err) {
+          api.clearAuthSession();
+          if (alive) {
+            setError(err.message || 'Gagal masuk. Silakan coba lagi.');
+            setLoading(false);
+          }
+        }
+      },
+      (err) => {
+        if (alive) setError(err.message || 'Gagal menerima token Google.');
+      },
+    )
+      .then((fn) => { cleanup = fn; })
+      .catch((err) => {
+        if (alive) setError(err.message || 'Gagal memuat Google Sign-In.');
+      });
+    return () => {
+      alive = false;
+      if (cleanup) cleanup();
+    };
+  }, [onLogin]);
+
+  const handleGoogleMock = async () => {
+    return signIn('tamu.baru@gmail.com');
   };
 
   return (
@@ -72,13 +96,19 @@ const LoginScreen = ({ onLogin }) => {
 
         <Button
           variant="outlined"
-          className="w-full h-14 text-base bg-white text-[#1A1B1E] border-[#CFC7D2]"
+          className={`w-full h-14 text-base bg-white text-[#1A1B1E] border-[#CFC7D2] ${USE_MOCK ? '' : 'hidden'}`}
           disabled={loading}
-          onClick={handleGoogle}
+          onClick={handleGoogleMock}
         >
           <GoogleIcon />
           {loading ? 'Memproses…' : 'Masuk dengan Google'}
         </Button>
+
+        {!USE_MOCK && (
+          <div className={`w-full h-14 flex items-center justify-center ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+            <div ref={googleButtonRef} className="w-full flex justify-center" />
+          </div>
+        )}
 
         {USE_MOCK && (
           <div className="w-full mt-6 pt-5 border-t border-dashed border-[#CFC7D2]">

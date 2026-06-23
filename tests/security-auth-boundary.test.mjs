@@ -9,11 +9,14 @@ const read = (...parts) => readFileSync(join(root, ...parts), 'utf8');
 test('frontend does not ship shared backend secret or actor_email trust input', () => {
   const api = read('web', 'src', 'lib', 'api.js');
   const env = read('web', '.env.example');
+  const googleAuth = read('web', 'src', 'lib', 'googleAuth.js');
 
   assert.doesNotMatch(api, /VITE_API_SECRET|API_SECRET|secret:\s*API_SECRET|getPhoto\?action|actor_email/);
   assert.doesNotMatch(env, /VITE_API_SECRET|API_SECRET/);
   assert.match(api, /id_token:\s*getIdToken\(\)/);
   assert.match(api, /post\('getPhoto',\s*\{\s*photo_id:/);
+  assert.match(googleAuth, /renderButton/);
+  assert.doesNotMatch(googleAuth, /\.prompt\(/);
 });
 
 test('Apps Script router verifies Google ID token before dispatch', () => {

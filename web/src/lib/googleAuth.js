@@ -6,6 +6,8 @@ const GIS_SRC = 'https://accounts.google.com/gsi/client';
 export const GOOGLE_CONFIGURED = !!CLIENT_ID;
 
 let gisReady = null;
+let activeCredentialHandler = null;
+let activeErrorHandler = null;
 
 function loadGis() {
   if (gisReady) return gisReady;
@@ -40,26 +42,44 @@ function parseCredential(jwt) {
   };
 }
 
-export async function signInWithGoogle() {
+function ensureConfigured() {
   if (!CLIENT_ID) {
     throw new Error('Login Google belum dikonfigurasi (VITE_GOOGLE_CLIENT_ID kosong).');
   }
+}
+
+export async function renderGoogleSignInButton(container, onCredential, onError) {
+  ensureConfigured();
+  if (!container) return null;
   await loadGis();
-  return new Promise((resolve, reject) => {
-    window.google.accounts.id.initialize({
-      client_id: CLIENT_ID,
-      callback: (resp) => {
-        try {
-          resolve(parseCredential(resp.credential));
-        } catch (err) {
-          reject(err);
-        }
-      },
-    });
-    window.google.accounts.id.prompt((notif) => {
-      if (notif.isNotDisplayed() || notif.isSkippedMoment()) {
-        reject(new Error('Dialog Google tidak muncul. Coba lagi atau izinkan pop-up.'));
+  activeCredentialHandler = onCredential;
+  activeErrorHandler = onError;
+  window.google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    ux_mode: 'popup',
+    callback: (resp) => {
+      try {
+        if (!resp?.credential) throw new Error('Token Google tidak diterima.');
+        activeCredentialHandler(parseCredential(resp.credential));
+      } catch (err) {
+        if (activeErrorHandler) activeErrorHandler(err);
       }
-    });
+    },
   });
+  container.innerHTML = '';
+  window.google.accounts.id.renderButton(container, {
+    theme: 'outline',
+    size: 'large',
+    type: 'standard',
+    shape: 'pill',
+    text: 'signin_with',
+    logo_alignment: 'center',
+    width: Math.max(240, Math.round(container.getBoundingClientRect().width || 360)),
+    locale: 'id',
+  });
+  return () => {
+    if (activeCredentialHandler === onCredential) activeCredentialHandler = null;
+    if (activeErrorHandler === onError) activeErrorHandler = null;
+    container.innerHTML = '';
+  };
 }
