@@ -132,7 +132,7 @@ deployment Web App yang sama. Lihat [docs/backend.md](docs/backend.md).
 | `backend/drive.js` | ✅ | `uploadPhoto` tervalidasi + `getPhoto` POST ber-token dan ownership check. |
 | `backend/email.js` | ✅ | `sendConfirmEmail` dan `sendRejectEmail` (MailApp). |
 | `backend/retention.js` | ✅ | `purgeOldData` + `installRetentionTrigger` (NFR-07, >30 hari). |
-| `backend/setup.js` | ✅ | `setupSpreadsheet()` — inisialisasi sheet, seed admin/lokasi, dan folder foto. |
+| `backend/setup.js` | ✅ | `setupSpreadsheet()` — inisialisasi sheet/folder; `authorizeRuntimeScopes()` untuk consent runtime GAS. |
 | `backend/appsscript.json` | ✅ | Manifest (V8, webapp Anyone, oauthScopes). |
 | Spreadsheet | 🟡 | Sheet: `Visitors`, `Visits`, `Packages`, `Users`, `Locations` — dibuat/dirapikan oleh `setupSpreadsheet()`. |
 

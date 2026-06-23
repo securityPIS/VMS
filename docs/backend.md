@@ -117,6 +117,11 @@ GOOGLE_CLIENT_ID=<OAuth Web Client ID yang sama dengan VITE_GOOGLE_CLIENT_ID>
 
 Secret lama tidak lagi menjadi kontrol akses aplikasi.
 
+Jika health `GET /exec` menunjukkan `url_fetch_authorized: false`, buka Apps
+Script editor lalu jalankan fungsi `authorizeRuntimeScopes()` sekali dengan akun
+deployer. Google akan menampilkan dialog consent untuk scope runtime. Setelah
+consent selesai, health harus berubah menjadi `backend_ready: true`.
+
 ## Wiring Frontend
 
 Isi `web/.env`:

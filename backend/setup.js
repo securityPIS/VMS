@@ -33,6 +33,25 @@ function setupSpreadsheet() {
   return info;
 }
 
+function authorizeRuntimeScopes() {
+  // Jalankan sekali dari Apps Script editor setelah ada scope baru di manifest.
+  // Fungsi ini sengaja menyentuh service runtime utama agar Google menampilkan
+  // dialog consent untuk Spreadsheet, Drive, dan UrlFetchApp.
+  const tokenInfoProbe = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo', {
+    method: 'get',
+    muteHttpExceptions: true,
+  });
+  const spreadsheet = getSpreadsheet();
+  const folder = getPhotoFolder();
+  const info = Object.assign({}, backendReadiness(), {
+    tokeninfo_probe_status: tokenInfoProbe.getResponseCode(),
+    spreadsheet_opened: !!spreadsheet.getId(),
+    photo_folder_opened: !!folder.getId(),
+  });
+  Logger.log(JSON.stringify(info, null, 2));
+  return info;
+}
+
 function ensureSheet(ss, name, header) {
   let sh = ss.getSheetByName(name);
   if (!sh) sh = ss.insertSheet(name);

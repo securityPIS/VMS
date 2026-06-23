@@ -34,12 +34,15 @@ test('Apps Script router verifies Google ID token before dispatch', () => {
 
 test('health endpoint exposes safe readiness flags only', () => {
   const code = read('backend', 'Code.js');
+  const setup = read('backend', 'setup.js');
 
   assert.match(code, /backend_ready/);
   assert.match(code, /google_client_id_configured/);
   assert.match(code, /spreadsheet_configured/);
   assert.match(code, /photo_folder_configured/);
   assert.match(code, /url_fetch_authorized/);
+  assert.match(setup, /function authorizeRuntimeScopes/);
+  assert.match(setup, /UrlFetchApp\.fetch/);
   assert.doesNotMatch(code, /spreadsheet_id:\s*PROP\.getProperty/);
 });
 
