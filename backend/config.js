@@ -6,8 +6,8 @@ const PROP = PropertiesService.getScriptProperties();
 // Kunci Script Properties (diisi oleh setup.js, lihat setupSpreadsheet()).
 const PROP_KEYS = {
   SPREADSHEET_ID: 'SPREADSHEET_ID',
-  API_SECRET: 'API_SECRET',
   PHOTO_FOLDER_ID: 'PHOTO_FOLDER_ID',
+  GOOGLE_CLIENT_ID: 'GOOGLE_CLIENT_ID',
 };
 
 const SHEETS = {
@@ -37,3 +37,6 @@ const USER_STATUS = { ACTIVE: 'Active', INACTIVE: 'Inactive' };
 
 const RETENTION_DAYS = 30;                     // NFR-07 (UU PDP): simpan maks 1 bulan.
 const PHOTO_FOLDER_NAME = 'VMS Photos (Private)';
+
+const MAX_PHOTO_BYTES = 3 * 1024 * 1024;
+const ALLOWED_PHOTO_MIME = ['image/jpeg', 'image/png', 'image/webp'];

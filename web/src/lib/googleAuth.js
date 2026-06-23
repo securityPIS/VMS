@@ -1,7 +1,4 @@
-// Login satu tombol via Google Identity Services (GIS).
-// Mengembalikan email terverifikasi dari ID token Google; peran ditentukan
-// terpisah oleh sistem (lihat api.getRole). Memerlukan VITE_GOOGLE_CLIENT_ID
-// (OAuth 2.0 Client ID tipe Web). Docs: https://developers.google.com/identity/gsi/web
+// Login Google via GIS. Backend tetap wajib memverifikasi ID token ini.
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 const GIS_SRC = 'https://accounts.google.com/gsi/client';
@@ -10,7 +7,6 @@ export const GOOGLE_CONFIGURED = !!CLIENT_ID;
 
 let gisReady = null;
 
-// Muat skrip GIS sekali (idempoten).
 function loadGis() {
   if (gisReady) return gisReady;
   gisReady = new Promise((resolve, reject) => {
@@ -26,17 +22,24 @@ function loadGis() {
   return gisReady;
 }
 
-// Ambil email dari payload JWT ID token (email bersifat ASCII → atob aman).
-function emailFromCredential(jwt) {
+function decodeJwtPayload(jwt) {
   const part = (jwt || '').split('.')[1];
   if (!part) throw new Error('Token Google tidak valid.');
-  const payload = JSON.parse(atob(part.replace(/-/g, '+').replace(/_/g, '/')));
-  if (!payload.email) throw new Error('Token Google tidak memuat email.');
-  if (payload.email_verified === false) throw new Error('Email Google belum terverifikasi.');
-  return payload.email;
+  const padded = part.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(part.length / 4) * 4, '=');
+  return JSON.parse(atob(padded));
 }
 
-// Tampilkan dialog Google dan resolve dengan email terverifikasi.
+function parseCredential(jwt) {
+  const payload = decodeJwtPayload(jwt);
+  if (!payload.email) throw new Error('Token Google tidak memuat email.');
+  if (payload.email_verified === false) throw new Error('Email Google belum terverifikasi.');
+  return {
+    email: payload.email,
+    idToken: jwt,
+    expiresAt: Number(payload.exp || 0) * 1000,
+  };
+}
+
 export async function signInWithGoogle() {
   if (!CLIENT_ID) {
     throw new Error('Login Google belum dikonfigurasi (VITE_GOOGLE_CLIENT_ID kosong).');
@@ -47,7 +50,7 @@ export async function signInWithGoogle() {
       client_id: CLIENT_ID,
       callback: (resp) => {
         try {
-          resolve(emailFromCredential(resp.credential));
+          resolve(parseCredential(resp.credential));
         } catch (err) {
           reject(err);
         }

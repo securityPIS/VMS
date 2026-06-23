@@ -14,7 +14,7 @@ Dokumentasi lebih dalam per-modul ada di folder [`docs/`](docs/).
 
 ```
 Browser (React/Vite, di Vercel)
-        │  HTTPS JSON (action + secret)
+        │  HTTPS JSON (action + id_token)
         ▼
 Google Apps Script Web App  ──►  Google Spreadsheet (DB)
         │                         Google Drive (foto)
@@ -53,7 +53,7 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 | `web/tailwind.config.js` | ✅ | Tailwind + token warna Pertamina + plugin animasi. |
 | `web/postcss.config.js` | ✅ | PostCSS (tailwindcss + autoprefixer). |
 | `web/index.html` | ✅ | HTML root + font Inter + mount `#root`. |
-| `web/.env.example` | ✅ | Contoh env (URL Apps Script, secret, OAuth client ID). |
+| `web/.env.example` | ✅ | Contoh env (URL Apps Script dan OAuth client ID). |
 | `web/.gitignore` | ✅ | Abaikan `node_modules`, `dist`, `.env`, dll. |
 
 ## 4. Frontend — inti & shared (`web/src/`)
@@ -119,19 +119,19 @@ Kode ✅ ditulis (modular, ≤500 baris/file). ⏳ Belum di-deploy/di-setup (lih
 
 | File | Status | Deskripsi |
 |---|:--:|---|
-| `backend/Code.js` | ✅ | Router `doPost` (verifySecret + dispatch) & `doGet` (health + getPhoto). |
+| `backend/Code.js` | ✅ | Router `doPost` (verifyIdToken + rate-limit + dispatch) & `doGet` health. |
 | `backend/config.js` | ✅ | Konstanta: nama sheet, `HEADERS`, status, peran, retensi, kunci properti. |
 | `backend/sheets.js` | ✅ | Helper Spreadsheet (readRows/appendRow/updateCells/stripRow/id). |
-| `backend/auth.js` | ✅ | `verifySecret` (NFR-05), `getRole`, `assertSecurityAt` (NFR-08). |
+| `backend/auth.js` | ✅ | `getRole`, `requireAdmin`, `requireSecurityScope`, dan helper RBAC/lokasi. |
 | `backend/visitors.js` | ✅ | `getVisitorByEmail`, `submitVisit`. |
 | `backend/visits.js` | ✅ | Antrean, `checkIn` + catatan konfirmasi/email, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `enrichVisits` (join asal/foto KTP). |
 | `backend/packages.js` | ✅ | `addPackage`, `getPackages`, `pickupPackage`. |
 | `backend/officers.js` | ✅ | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer`, `deleteOfficer` + validasi lokasi aktif. |
 | `backend/analytics.js` | ✅ | `getDashboardStats`, `getVisitorTimeline`. |
-| `backend/drive.js` | ✅ | `uploadPhoto` (Drive privat) + `servePhoto` (getPhoto ber-secret). |
+| `backend/drive.js` | ✅ | `uploadPhoto` tervalidasi + `getPhoto` POST ber-token dan ownership check. |
 | `backend/email.js` | ✅ | `sendConfirmEmail` dan `sendRejectEmail` (MailApp). |
 | `backend/retention.js` | ✅ | `purgeOldData` + `installRetentionTrigger` (NFR-07, >30 hari). |
-| `backend/setup.js` | ✅ | `setupSpreadsheet()` — inisialisasi sheet/seed/secret/folder. |
+| `backend/setup.js` | ✅ | `setupSpreadsheet()` — inisialisasi sheet, seed admin/lokasi, dan folder foto. |
 | `backend/appsscript.json` | ✅ | Manifest (V8, webapp Anyone, oauthScopes). |
 | Spreadsheet | ⏳ | Sheet: `Visitors`, `Visits`, `Packages`, `Users`, `Locations` — dibuat oleh `setupSpreadsheet()`. |
 
@@ -146,7 +146,7 @@ npm run dev        # http://localhost:5173 (mode mock)
 npm run build      # build produksi → web/dist
 ```
 
-Untuk menyambung backend: salin `web/.env.example` → `web/.env`, isi `VITE_APPS_SCRIPT_URL`.
+Untuk menyambung backend: salin `web/.env.example` → `web/.env`, isi `VITE_APPS_SCRIPT_URL` dan `VITE_GOOGLE_CLIENT_ID`.
 
 ---
 

@@ -42,7 +42,7 @@ Komponen **selalu** memanggil `api.*` (lib/api.js) — satu jalur data, dua mode
 Container (`SecurityDashboard`, `AdminDashboard`) memuat data via `api.*` saat
 mount, memanggil `api.*` untuk tiap aksi lalu **memuat ulang**, dengan state
 loading & error. Untuk menyambung backend cukup isi `web/.env`
-(`VITE_APPS_SCRIPT_URL`, `VITE_API_SECRET`) — tanpa ubah komponen.
+(`VITE_APPS_SCRIPT_URL`, `VITE_GOOGLE_CLIENT_ID`) tanpa ubah komponen.
 
 ## Hal yang masih simulasi / sisa go-live
 | Area | Status | Catatan |
@@ -52,7 +52,7 @@ loading & error. Untuk menyambung backend cukup isi `web/.env`
 | Status tamu | ✅ wired | Polling `api.getVisitStatus` tiap 5 dtk sampai status final. |
 | Validasi kartu duplikat (FR-10) | ✅ wired | Ditegakkan backend `checkIn` (& store mock). |
 | Login Google | 🟡 | Alur `getRole` jalan; butuh `VITE_GOOGLE_CLIENT_ID` agar tombol Google nyata (panel demo dipakai saat mock). |
-| Enforcement lokasi petugas (NFR-08) | 🟡 | `actor_email` dikirim; backend menegakkan bila identitas terverifikasi (TODO token). |
+| Enforcement lokasi petugas (NFR-08) | ✅ | Backend menegakkan role/lokasi dari Google ID token yang diverifikasi server-side. |
 
 ## Menjalankan
 ```bash

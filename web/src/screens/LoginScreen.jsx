@@ -45,9 +45,11 @@ const LoginScreen = ({ onLogin }) => {
     setError('');
     setLoading(true);
     try {
-      const email = await signInWithGoogle();
-      await signIn(email);
+      const auth = await signInWithGoogle();
+      api.setAuthSession(auth.idToken, auth.expiresAt, auth.email);
+      await signIn(auth.email);
     } catch (err) {
+      api.clearAuthSession();
       setError(err.message);
       setLoading(false);
     }

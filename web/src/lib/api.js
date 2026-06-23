@@ -1,15 +1,5 @@
 // Lapisan integrasi tunggal ke Google Apps Script Web App.
-//
-// Dua mode otomatis berdasarkan env:
-//  • MODE BACKEND (VITE_APPS_SCRIPT_URL terisi): POST text/plain ke Apps Script,
-//    respons dinormalisasi ke bentuk frontend lewat adapters.js.
-//  • MODE MOCK (URL kosong): membaca/menulis store di memori (salinan mockData),
-//    sehingga UI & alur (check-in, dll.) tetap jalan tanpa backend.
-//
-// Komponen TIDAK memanggil fetch langsung — selalu lewat `api.*`. Bentuk data
-// yang dikembalikan identik di kedua mode.
-//
-// Catatan CORS: Apps Script lebih mulus bila body text/plain (hindari preflight).
+// Mode backend memakai Google ID token; mode mock tetap berjalan tanpa backend.
 
 import {
   MOCK_VISITS, MOCK_PACKAGES, MOCK_SECURITY_OFFICERS,
@@ -19,16 +9,50 @@ import { dateID, LOCATIONS, sortVisitsNewest, timeID } from './constants';
 import { adaptVisit, adaptPackage } from './adapters';
 
 const API_URL = import.meta.env.VITE_APPS_SCRIPT_URL || '';
-const API_SECRET = import.meta.env.VITE_API_SECRET || '';
+const AUTH_SESSION_KEY = 'vms.auth.google';
 
 export const USE_MOCK = !API_URL;
 
-// ── Transport (mode backend) ────────────────────────────────────────────────
+function readAuthSession() {
+  if (typeof sessionStorage === 'undefined') return null;
+  try {
+    return JSON.parse(sessionStorage.getItem(AUTH_SESSION_KEY) || 'null');
+  } catch {
+    return null;
+  }
+}
+
+export function setAuthSession(idToken, expiresAt, email) {
+  if (typeof sessionStorage === 'undefined') return;
+  sessionStorage.setItem(AUTH_SESSION_KEY, JSON.stringify({ idToken, expiresAt, email }));
+}
+
+export function clearAuthSession() {
+  if (typeof sessionStorage === 'undefined') return;
+  sessionStorage.removeItem(AUTH_SESSION_KEY);
+}
+
+export function hasAuthSession() {
+  if (USE_MOCK) return true;
+  const session = readAuthSession();
+  return !!(session?.idToken && (!session.expiresAt || session.expiresAt > Date.now() + 30000));
+}
+
+function getIdToken() {
+  const session = readAuthSession();
+  if (!session?.idToken) throw new Error('Sesi Google tidak tersedia. Silakan login ulang.');
+  if (session.expiresAt && session.expiresAt <= Date.now() + 30000) {
+    clearAuthSession();
+    throw new Error('Sesi Google kedaluwarsa. Silakan login ulang.');
+  }
+  return session.idToken;
+}
+
 async function post(action, payload = {}) {
   const res = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify({ action, secret: API_SECRET, ...payload }),
+    body: JSON.stringify({ action, id_token: getIdToken(), ...payload }),
   });
   if (!res.ok) throw new Error(`API ${action} gagal: HTTP ${res.status}`);
   const data = await res.json();
@@ -36,23 +60,18 @@ async function post(action, payload = {}) {
   return data;
 }
 
-// Ambil foto privat lewat doGet?action=getPhoto → data URI base64 (di-cache).
 const DIRECT_SRC = /^(https?:|data:)/;
 const photoCache = new Map();
 async function fetchPhoto(ref) {
   if (!ref) return '';
   if (DIRECT_SRC.test(ref)) return ref;
   if (photoCache.has(ref)) return photoCache.get(ref);
-  const url = `${API_URL}?action=getPhoto&id=${encodeURIComponent(ref)}&secret=${encodeURIComponent(API_SECRET)}`;
-  const res = await fetch(url);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
+  const data = await post('getPhoto', { photo_id: ref });
   const uri = `data:${data.mime};base64,${data.base64}`;
   photoCache.set(ref, uri);
   return uri;
 }
 
-// ── Store di memori (mode mock) ─────────────────────────────────────────────
 const clone = (x) => JSON.parse(JSON.stringify(x));
 const store = {
   visits: clone(MOCK_VISITS),
@@ -66,23 +85,28 @@ function nowParts() {
   const d = new Date();
   return { date: dateID(d), time: timeID(d), iso: d.toISOString() };
 }
+
 function scheduledAt(date) {
   return date ? `${date}T00:00:00+07:00` : '';
 }
+
 function mutateVisit(id, patch) {
   const v = store.visits.find((x) => x.id === id);
   if (!v) throw new Error('Kunjungan tidak ditemukan: ' + id);
   Object.assign(v, patch);
 }
+
 function nextMockOfficerId() {
   const nums = store.officers.map((o) => String(o.officer_id || o.id))
     .filter((s) => /^SEC-\d+$/.test(s)).map((s) => parseInt(s.split('-')[1], 10));
   const max = nums.length ? Math.max(...nums) : 0;
   return 'SEC-' + String(max + 1).padStart(2, '0');
 }
+
 function mockLocations() {
   return LOCATIONS.map((name, i) => ({ location_id: `LOC-${String(i + 1).padStart(2, '0')}`, name }));
 }
+
 function resolveMockLocation(data = {}) {
   const locationId = String(data.location_id || data.locationId || '').trim();
   const locationName = String(data.location || '').trim();
@@ -92,6 +116,7 @@ function resolveMockLocation(data = {}) {
   if (!loc) throw new Error('Lokasi penugasan tidak valid atau tidak aktif.');
   return loc;
 }
+
 function mockStats() {
   const v = store.visits;
   return {
@@ -103,33 +128,33 @@ function mockStats() {
     dept: CHART_DEPT,
   };
 }
+
 function sameLocation(rowLocation, location) {
   if (!location) return true;
   return String(rowLocation || '').trim().toLowerCase() === String(location || '').trim().toLowerCase();
 }
 
-// ── API publik ──────────────────────────────────────────────────────────────
 export const api = {
-  // Peran ditentukan sistem dari email (mock: lokal; backend: endpoint getRole).
-  getRole: (email) => (USE_MOCK ? Promise.resolve(resolveRoleFromEmail(email)) : post('getRole', { email })),
+  setAuthSession,
+  clearAuthSession,
+  hasAuthSession,
+
+  getRole: (email) => (USE_MOCK ? Promise.resolve(resolveRoleFromEmail(email)) : post('getRole')),
 
   getLocations: async () => {
     if (USE_MOCK) return mockLocations();
     return post('getLocations');
   },
 
-  // Resolusi ref foto → URL yang bisa dipasang di <img>. Dipakai RemotePhoto.
   getPhoto: (ref) => {
     if (!ref) return Promise.resolve('');
     if (USE_MOCK) return Promise.resolve(DIRECT_SRC.test(ref) ? ref : '');
     return fetchPhoto(ref);
   },
 
-  // ── Visitor ──
-  uploadPhoto: async (base64, type, email) => {
-    // Mock: pakai data URL langsung sebagai "ref" agar bisa langsung dipreview.
+  uploadPhoto: async (base64, type) => {
     if (USE_MOCK) return { ok: true, id: base64, url: base64 };
-    return post('uploadPhoto', { base64, type, email });
+    return post('uploadPhoto', { base64, type });
   },
 
   submitVisit: async (data) => {
@@ -166,21 +191,22 @@ export const api = {
     return post('getVisitStatus', { visit_id: visitId });
   },
 
-  // ── Security: kunjungan ──
-  getPendingVisits: async (location, actorEmail) => {
+  getPendingVisits: async (location) => {
     if (USE_MOCK) return store.visits.filter((v) => v.status === 'PENDING' && sameLocation(v.location, location));
-    return (await post('getPendingVisits', { location, actor_email: actorEmail })).map(adaptVisit);
-  },
-  getActiveVisits: async (location, actorEmail) => {
-    if (USE_MOCK) return store.visits.filter((v) => v.status === 'CHECKED_IN' && sameLocation(v.location, location));
-    return (await post('getActiveVisits', { location, actor_email: actorEmail })).map(adaptVisit);
-  },
-  getHistory: async (filter = {}) => {
-    if (USE_MOCK) return sortVisitsNewest(clone(store.visits).filter((v) => sameLocation(v.location, filter.location)));
-    return sortVisitsNewest((await post('getHistory', filter)).map(adaptVisit));
+    return (await post('getPendingVisits', { location })).map(adaptVisit);
   },
 
-  checkIn: async (visitId, cardNumber, confirmNotes, actorEmail) => {
+  getActiveVisits: async (location) => {
+    if (USE_MOCK) return store.visits.filter((v) => v.status === 'CHECKED_IN' && sameLocation(v.location, location));
+    return (await post('getActiveVisits', { location })).map(adaptVisit);
+  },
+
+  getHistory: async (filter = {}) => {
+    if (USE_MOCK) return sortVisitsNewest(clone(store.visits).filter((v) => sameLocation(v.location, filter.location)));
+    return sortVisitsNewest((await post('getHistory', filter || {})).map(adaptVisit));
+  },
+
+  checkIn: async (visitId, cardNumber, confirmNotes) => {
     if (USE_MOCK) {
       const card = String(cardNumber || '').trim();
       const notes = String(confirmNotes || '').trim();
@@ -200,38 +226,35 @@ export const api = {
       });
       return { ok: true };
     }
-    return post('checkIn', {
-      visit_id: visitId,
-      card_number: cardNumber,
-      confirm_notes: confirmNotes,
-      actor_email: actorEmail,
-    });
+    return post('checkIn', { visit_id: visitId, card_number: cardNumber, confirm_notes: confirmNotes });
   },
-  rejectVisit: async (visitId, reason, actorEmail) => {
+
+  rejectVisit: async (visitId, reason) => {
     if (USE_MOCK) {
       if (!String(reason || '').trim()) throw new Error('Alasan penolakan wajib diisi.');
       mutateVisit(visitId, { status: 'REJECTED', rejectReason: reason });
       return { ok: true };
     }
-    return post('rejectVisit', { visit_id: visitId, reason, actor_email: actorEmail });
+    return post('rejectVisit', { visit_id: visitId, reason });
   },
-  checkOut: async (visitId, actorEmail) => {
+
+  checkOut: async (visitId) => {
     if (USE_MOCK) {
       mutateVisit(visitId, { status: 'CHECKED_OUT', checkoutAt: new Date().toISOString(), timeOut: timeID() });
       return { ok: true };
     }
-    return post('checkOut', { visit_id: visitId, actor_email: actorEmail });
+    return post('checkOut', { visit_id: visitId });
   },
 
-  // ── Security: paket ──
-  getPackages: async (filter = {}, actorEmail) => {
+  getPackages: async (filter = {}) => {
     if (USE_MOCK) {
       return clone(store.packages).filter((p) =>
         (!filter.status || p.status === filter.status) && sameLocation(p.location, filter.location));
     }
-    return (await post('getPackages', { ...filter, actor_email: actorEmail })).map(adaptPackage);
+    return (await post('getPackages', filter)).map(adaptPackage);
   },
-  addPackage: async (data, actorEmail) => {
+
+  addPackage: async (data) => {
     if (USE_MOCK) {
       const id = 'PKG-' + (++pkgSeq);
       const { date, time } = nowParts();
@@ -241,9 +264,10 @@ export const api = {
       });
       return { ok: true, package_id: id };
     }
-    return post('addPackage', { ...data, actor_email: actorEmail });
+    return post('addPackage', data);
   },
-  pickupPackage: async (packageId, actorEmail) => {
+
+  pickupPackage: async (packageId) => {
     if (USE_MOCK) {
       const p = store.packages.find((x) => x.id === packageId);
       if (!p) throw new Error('Paket tidak ditemukan: ' + packageId);
@@ -251,18 +275,19 @@ export const api = {
       p.status = 'PICKED_UP';
       return { ok: true };
     }
-    return post('pickupPackage', { package_id: packageId, actor_email: actorEmail });
+    return post('pickupPackage', { package_id: packageId });
   },
 
-  // ── Admin ──
   getDashboardStats: async () => {
     if (USE_MOCK) return mockStats();
     return post('getDashboardStats');
   },
+
   getOfficers: async () => {
     if (USE_MOCK) return clone(store.officers);
     return post('getOfficers');
   },
+
   addOfficer: async (data) => {
     if (USE_MOCK) {
       if (store.officers.some((o) => o.email.toLowerCase() === String(data.email).toLowerCase())) {
@@ -283,6 +308,7 @@ export const api = {
     }
     return post('addOfficer', data);
   },
+
   updateOfficer: async (data) => {
     if (USE_MOCK) {
       const o = store.officers.find((x) => (x.officer_id || x.id) === data.officer_id);
@@ -303,6 +329,7 @@ export const api = {
     }
     return post('updateOfficer', data);
   },
+
   deleteOfficer: async (officerId) => {
     if (USE_MOCK) {
       const idx = store.officers.findIndex((x) => (x.officer_id || x.id) === officerId);

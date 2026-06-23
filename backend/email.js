@@ -1,7 +1,7 @@
 // email.js - notifikasi email via MailApp untuk konfirmasi dan penolakan.
 
 function emailName(nama) {
-  return String(nama || 'Bapak/Ibu').trim() || 'Bapak/Ibu';
+  return stripControlChars(nama || 'Bapak/Ibu') || 'Bapak/Ibu';
 }
 
 function formatVisitSchedule(visit) {
@@ -26,7 +26,7 @@ function sendEmailSafely(message, logLabel) {
 
 function sendConfirmEmail(visit, notes) {
   if (!visit || !visit.email) return;
-  const catatan = String(notes || '').trim();
+  const catatan = optionalText(notes, 'Catatan petugas', 500);
   sendEmailSafely({
     to: visit.email,
     subject: 'Konfirmasi Kunjungan Anda - Visitor Management System',
@@ -57,6 +57,7 @@ function sendConfirmEmail(visit, notes) {
 
 function sendRejectEmail(email, nama, reason) {
   if (!email) return;
+  const safeReason = optionalText(reason, 'Alasan penolakan', 500) || '-';
   sendEmailSafely({
     to: email,
     subject: 'Pemberitahuan Penolakan Kunjungan - Visitor Management System',
@@ -66,7 +67,7 @@ function sendRejectEmail(email, nama, reason) {
       'Dengan hormat, kami informasikan bahwa permohonan kunjungan Anda belum dapat disetujui.',
       '',
       'Alasan penolakan:',
-      String(reason || '').trim() || '-',
+      safeReason,
       '',
       'Apabila diperlukan, silakan menghubungi pihak yang Anda tuju atau melakukan registrasi ulang dengan data yang sesuai.',
       '',

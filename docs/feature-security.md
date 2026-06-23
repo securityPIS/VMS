@@ -6,7 +6,7 @@ Dashboard petugas. State terpusat di `SecurityDashboard`, anak-anaknya presentat
 Memegang state & alur, merakit sidebar + tab + modal.
 - Props: `user`, `onLogout` (memakai `user.location` & `user.email` sebagai konteks).
 - `load()` memuat paralel: `getPendingVisits`, `getActiveVisits`, `getHistory`,
-  `getPackages` (dengan `location` + `actor_email`) saat mount; state `loading`/`error`.
+  `getPackages` dengan filter lokasi saat mount; backend menentukan actor dari ID token.
 - Aksi lewat helper `run(fn, onDone)`: panggil `api.*` → tutup modal → **muat ulang**;
   `handleCheckIn`, `handleReject`, `handleCheckOut`, `handleAddPackage` (unggah foto
   dulu bila ada), `handlePickup`. Flag `busy` menonaktifkan tombol saat proses.

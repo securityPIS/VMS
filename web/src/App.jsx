@@ -6,6 +6,7 @@ import VisitorFormScreen from './screens/VisitorFormScreen';
 import VisitorStatusScreen from './screens/VisitorStatusScreen';
 import SecurityDashboard from './features/security/SecurityDashboard';
 import AdminDashboard from './features/admin/AdminDashboard';
+import { api } from './lib/api';
 
 const SESSION_USER_KEY = 'vms.session.user';
 const SESSION_VISIT_KEY = 'vms.session.visitStatus';
@@ -28,7 +29,7 @@ function writeSession(key, value) {
 }
 
 const App = () => {
-  const [user, setUser] = useState(() => readSession(SESSION_USER_KEY));
+  const [user, setUser] = useState(() => (api.hasAuthSession() ? readSession(SESSION_USER_KEY) : null));
   const [visitStatus, setVisitStatus] = useState(() => readSession(SESSION_VISIT_KEY));
 
   const handleLogin = (userData) => {
@@ -41,6 +42,7 @@ const App = () => {
     writeSession(SESSION_VISIT_KEY, result);
   };
   const handleLogout = () => {
+    api.clearAuthSession();
     setUser(null);
     setVisitStatus(null);
     writeSession(SESSION_USER_KEY, null);

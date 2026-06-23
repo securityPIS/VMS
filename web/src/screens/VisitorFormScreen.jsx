@@ -53,8 +53,8 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
       // Selfie & KTP diunggah paralel (tiap upload = round-trip + createFile Drive
       // yang lambat); keduanya independen, jadi tak perlu berurutan.
       const [selfieRes, ktpRes] = await Promise.all([
-        selfiePhoto ? api.uploadPhoto(selfiePhoto, 'selfie', user.email) : Promise.resolve({ id: '' }),
-        (!isReturning && ktpPhoto) ? api.uploadPhoto(ktpPhoto, 'ktp', user.email) : Promise.resolve({ id: '' }),
+        selfiePhoto ? api.uploadPhoto(selfiePhoto, 'selfie') : Promise.resolve({ id: '' }),
+        (!isReturning && ktpPhoto) ? api.uploadPhoto(ktpPhoto, 'ktp') : Promise.resolve({ id: '' }),
       ]);
       const selfieRef = selfieRes.id || '';
       const ktpRef = ktpRes.id || '';
@@ -69,6 +69,7 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
         location: formData.location,
         schedule_type: formData.scheduleType,
         scheduled_date: formData.scheduleType === 'SCHEDULE' ? formData.scheduledDate : '',
+        consent: formData.consent,
         selfie_url: selfieRef,
         ktp_photo_url: ktpRef,
       });

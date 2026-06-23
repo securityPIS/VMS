@@ -42,9 +42,9 @@ langsung — selalu lewat `api.*`. Dua mode transparan ke pemanggil:
   `mockData`) — read mengembalikan data, mutation benar-benar mengubah store
   (mis. cek kartu duplikat) lalu container memuat ulang. Tidak melempar.
 - `getPhoto(ref)` — resolusi foto: URL langsung (mock) atau base64 via
-  `doGet?action=getPhoto` (backend, di-cache). Dipakai `RemotePhoto`.
+  action POST `getPhoto` ber-ID token (backend, di-cache). Dipakai `RemotePhoto`.
 - Method memetakan tiap endpoint PRD §9 + `getVisitStatus`. Aksi security
-  menerima `actorEmail`/`location` (dikirim sebagai `actor_email` untuk NFR-08).
+  menerima filter lokasi; backend menentukan actor dari Google ID token.
 - `getRole(email)` **mock-aware** (lokal via `resolveRoleFromEmail` saat mock).
 
 ## `adapters.js` ✅

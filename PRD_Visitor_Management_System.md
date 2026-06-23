@@ -200,7 +200,7 @@ RECEIVED ──ambil──> PICKED_UP
 | NFR-02 | Apps Script di-deploy sebagai Web App (`doGet`/`doPost`) dengan akses "Anyone". |
 | NFR-03 | Waktu respons API < 3 detik untuk operasi umum. |
 | NFR-04 | Data KTP disimpan aman; akses spreadsheet dibatasi. |
-| NFR-05 | Endpoint diamankan dengan token/secret antara React dan Apps Script. |
+| NFR-05 | Endpoint diamankan dengan Google ID token dari React yang diverifikasi server-side di Apps Script. |
 | NFR-06 | Antarmuka berbahasa Indonesia. |
 | NFR-07 | Retensi data: data kunjungan & foto (KTP/selfie) disimpan maksimal **1 bulan**, lalu diarsipkan/dihapus otomatis (mis. trigger terjadwal Apps Script). Foto paket mengikuti retensi yang sama. |
 | NFR-08 | Filter berbasis lokasi tidak boleh membocorkan data lokasi lain ke petugas yang tidak berwenang (enforce di backend, bukan hanya UI). |
@@ -226,7 +226,7 @@ RECEIVED ──ambil──> PICKED_UP
                                        └──────────────────┘
 ```
 
-**Catatan keamanan:** Google OAuth token sebaiknya diverifikasi. Karena Apps Script Web App "Anyone" tidak otomatis mengetahui user, kirim Google ID token dari React dan verifikasi di Apps Script, atau gunakan shared secret + email dari sesi Google login frontend.
+**Catatan keamanan:** Karena Apps Script Web App "Anyone" tidak otomatis mengetahui user, React wajib mengirim Google ID token pada setiap request dan Apps Script wajib memverifikasi token tersebut sebelum dispatch action. Email/role dari payload browser tidak boleh menjadi dasar otorisasi.
 
 ---
 
@@ -378,7 +378,7 @@ Dikirim menggunakan `MailApp.sendEmail()` di Google Apps Script.
 
 | Risiko | Dampak | Mitigasi |
 |---|---|---|
-| Apps Script Web App publik tanpa auth kuat | Data bocor | Verifikasi Google ID token + shared secret |
+| Apps Script Web App publik tanpa auth kuat | Data bocor | Verifikasi Google ID token server-side dan otorisasi per action |
 | Spreadsheet sebagai DB punya limit kuota | Lambat saat data besar | Arsip berkala, paginasi |
 | Kartu visitor duplikat aktif | Salah identifikasi | Validasi `card_number` unik untuk status aktif |
 | Data KTP sensitif | Pelanggaran privasi | Batasi akses sheet, jangan tampilkan KTP penuh di UI publik |
@@ -410,7 +410,7 @@ VMS memproses data pribadi (nama, NIK/KTP, foto KTP, foto selfie, email) sehingg
 | **Pembatasan akses** | Foto KTP/selfie & NIK hanya dapat dilihat role security/admin; folder Drive privat (tanpa public-link). |
 | **Retensi terbatas** | Data & foto disimpan maksimal **1 bulan**, lalu dihapus/diarsipkan otomatis (lihat NFR-07). |
 | **Hak subjek data** | Tamu berhak meminta akses, koreksi, dan penghapusan datanya. Sediakan kanal permintaan (mis. email kontak). |
-| **Keamanan** | Endpoint diamankan token/secret; data sensitif tidak ditaruh di URL; transmisi via HTTPS. |
+| **Keamanan** | Endpoint diamankan Google ID token server-side; foto/PII tidak ditaruh di URL; transmisi via HTTPS. |
 | **Notifikasi pelanggaran** | Jika terjadi kebocoran data, wajib lapor ke subjek data & lembaga pengawas dalam **paling lama 72 jam**. |
 
 ### 15.2 Kondisi yang Dapat Menimbulkan Pelanggaran

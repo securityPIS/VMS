@@ -1,7 +1,7 @@
-// analytics.js — metrik dashboard & jejak per-visitor untuk admin.
-// Bentuk output `weekly`/`dept` sengaja cocok dengan grafik recharts di frontend.
+// analytics.js - metrik dashboard dan jejak visitor untuk admin.
 
-function getDashboardStats() {
+function getDashboardStats(data, authedEmail) {
+  requireAdmin(authedEmail);
   const visits = readRows(SHEETS.VISITS);
   const today = dateKey(new Date());
   const monthPrefix = today.slice(0, 7);
@@ -18,7 +18,6 @@ function getDashboardStats() {
   };
 }
 
-// Jumlah kunjungan 7 hari terakhir, diurutkan Sen..Min (konsisten dgn UI).
 function weeklySeries(visits) {
   const names = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'];
   const counts = [0, 0, 0, 0, 0, 0, 0];
@@ -31,7 +30,6 @@ function weeklySeries(visits) {
   return [1, 2, 3, 4, 5, 6, 0].map((i) => ({ name: names[i], kunjungan: counts[i] }));
 }
 
-// Distribusi tujuan/departemen (top 6) untuk pie chart.
 function deptDistribution(visits) {
   const map = {};
   visits.forEach((v) => { const k = v.tujuan || 'Lainnya'; map[k] = (map[k] || 0) + 1; });
@@ -41,8 +39,8 @@ function deptDistribution(visits) {
     .slice(0, 6);
 }
 
-// Jejak per-visitor: kelompokkan kunjungan per email, terbaru dulu.
-function getVisitorTimeline(data) {
+function getVisitorTimeline(data, authedEmail) {
+  requireAdmin(authedEmail);
   let visits = readRows(SHEETS.VISITS).map(stripRow);
   if (data.search) {
     const q = String(data.search).toLowerCase();

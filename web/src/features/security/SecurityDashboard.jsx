@@ -55,7 +55,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
       const [p, a, h, pk] = await Promise.all([
         api.getPendingVisits(loc, actor),
         api.getActiveVisits(loc, actor),
-        api.getHistory({ location: loc, actor_email: actor }),
+        api.getHistory({ location: loc }),
         api.getPackages({ location: loc }, actor),
       ]);
       setPending(p);

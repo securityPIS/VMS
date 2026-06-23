@@ -1,101 +1,101 @@
-# Backend — Google Apps Script (`backend/`)
+# Backend - Google Apps Script (`backend/`)
 
 Web App Apps Script + Google Spreadsheet (DB) + Google Drive (foto). Semua file
-`.js` di-deploy sebagai satu proyek Apps Script (berbagi scope global — tanpa
-`import`). Tiap file satu concern, ≤500 baris.
+`.js` di-deploy sebagai satu proyek Apps Script dan berbagi scope global.
 
-## Alur request
-```
-React (Vercel) ──POST text/plain {action, secret, ...}──► doPost (Code.js)
-                                                            │ verifySecret (auth.js)
-                                                            ▼ dispatch(action)
-                              handler domain ──► sheets.js ──► Spreadsheet / Drive
-```
-- **text/plain** dipakai agar tidak memicu CORS preflight.
-- Respons = JSON value langsung (objek/array). Error → `{ "error": "..." }`.
+## Alur Request
 
-## Daftar file
+```text
+React (Vercel) --POST text/plain {action, id_token, ...}--> doPost (Code.js)
+                                                              | verifyIdToken (identity.js)
+                                                              | enforceRateLimit (ratelimit.js)
+                                                              v
+                                                     dispatch(action, authedEmail)
+                                                              |
+                                                     handler domain -> Sheets/Drive/Mail
+```
+
+- `id_token` adalah Google ID token dari GIS dan diverifikasi server-side.
+- Backend menurunkan identitas dari token, bukan dari email di payload.
+- Respons = JSON value langsung. Error client dibuat generik; detail dicatat ke log.
+
+## Daftar File
+
 | File | Isi |
 |---|---|
-| `Code.js` | `doPost` (router + verifySecret), `doGet` (health + getPhoto), `dispatch`, `jsonOutput`. |
-| `config.js` | Konstanta: nama sheet, `HEADERS` (urutan kolom), status, peran, retensi, kunci properti. |
-| `sheets.js` | Helper Spreadsheet: `readRows`, `appendRow`, `updateCells`, `stripRow`, `uuid`, `shortId`. |
-| `auth.js` | `verifySecret` (NFR-05), `getRole`, `assertSecurityAt` (NFR-08), helper email/role. |
-| `visitors.js` | `getVisitorByEmail`, `submitVisit` (buat Visitor + Visit PENDING). |
-| `visits.js` | `getPendingVisits`, `getActiveVisits`, `checkIn`, `rejectVisit`, `checkOut`, `getHistory`, `getVisitStatus`; `checkIn` menyimpan `confirm_notes` dan mengirim email konfirmasi; `enrichVisits` (join `asal`+`ktp_photo_url` dari Visitors). |
-| `packages.js` | `addPackage`, `getPackages`, `pickupPackage`. |
-| `officers.js` | `getLocations`, `getOfficers`, `addOfficer`, `updateOfficer`, `deleteOfficer` (whitelist security; lokasi divalidasi ke sheet `Locations`). |
-| `analytics.js` | `getDashboardStats` (metrik + weekly/dept), `getVisitorTimeline`. |
-| `drive.js` | `uploadPhoto` (folder privat), `servePhoto` (getPhoto ber-secret). |
-| `email.js` | `sendConfirmEmail` dan `sendRejectEmail` (MailApp). |
-| `retention.js` | `purgeOldData` + `installRetentionTrigger` (hapus >30 hari, NFR-07). |
-| `setup.js` | `setupSpreadsheet()` — inisialisasi sekali (sheet, seed, secret, folder). |
-| `appsscript.json` | Manifest: timezone, runtime V8, webapp (Anyone), oauthScopes. |
+| `Code.js` | `doPost` (verify ID token, rate-limit, dispatch), `doGet` health, `jsonOutput`. |
+| `identity.js` | Verifikasi Google ID token via tokeninfo + cache `CacheService`. |
+| `ratelimit.js` | Rate-limit best-effort per action/email. |
+| `validation.js` | Sanitasi input, validasi email/KTP, masking KTP, helper lock. |
+| `config.js` | Konstanta sheet, header, status, peran, retensi, kunci property. |
+| `sheets.js` | Helper Spreadsheet: `readRows`, `appendRow`, `updateCells`, `stripRow`, id. |
+| `auth.js` | `getRole`, `requireAdmin`, `requireSecurityScope`, akses visit/foto. |
+| `visitors.js` | `getVisitorByEmail`, `submitVisit`; email owner dari token. |
+| `visits.js` | Antrean, aktif, status, check-in/reject/check-out, history; semua RBAC server-side. |
+| `packages.js` | Paket masuk/ambil dengan scope lokasi. |
+| `officers.js` | Lokasi aktif dan CRUD petugas khusus admin. |
+| `analytics.js` | Dashboard stats dan visitor timeline khusus admin. |
+| `drive.js` | Upload foto tervalidasi dan `getPhoto` POST ber-token + ownership check. |
+| `email.js` | Email konfirmasi/penolakan plain text dengan input tersanitasi. |
+| `retention.js` | `purgeOldData` + `installRetentionTrigger` untuk retensi 30 hari. |
+| `setup.js` | Inisialisasi sheet/seed/folder dan status konfigurasi. |
+| `appsscript.json` | Manifest V8, webapp Anyone, scope Drive/Sheets/Mail/UrlFetch. |
 
-## Keamanan & kepatuhan
-- **NFR-05:** setiap POST wajib `secret` yang cocok dengan `API_SECRET` (Script Properties).
-- **NFR-08:** filter lokasi di backend (`filterVisits`/`getPackages`). `assertSecurityAt`
-  meng-enforce lokasi bila `actor_email` dikirim — **TODO go-live:** wajibkan identitas
-  petugas terverifikasi (token), saat ini opsional agar kompatibel fase mock.
-- **UU PDP / NFR-04:** foto di folder Drive **privat** (tanpa link publik); diakses lewat
-  `getPhoto` ber-secret. **NFR-07:** `purgeOldData` hapus data & foto >30 hari (trigger harian).
+## Security Model
 
-## Kontrak endpoint (ringkas)
-Request: `{ action, secret, ...payload }`. Berikut payload & hasil utama:
+- Semua POST data wajib membawa `id_token` Google valid.
+- `GOOGLE_CLIENT_ID` wajib di Script Properties.
+- Endpoint admin memakai `requireAdmin(authedEmail)`.
+- Endpoint security memakai `requireSecurityScope(authedEmail, location)`.
+- Visitor hanya boleh melihat/mengubah data miliknya.
+- `getPhoto` tidak lagi lewat query string; foto hanya keluar bila ID terkait row yang boleh diakses.
+- `checkIn`, `rejectVisit`, `checkOut`, package pickup, dan CRUD petugas memakai `LockService`.
+- KTP penuh tidak dikirim ke frontend; gunakan `ktp_masked` bila perlu ditampilkan.
 
-| Action | Payload | Hasil |
-|---|---|---|
-| `getRole` | `email` | `{ role, name, email, type?, location_id?, location?, officer_id?, asal? }` |
-| `getVisitorByEmail` | `email` | `{ visitor }` (atau `null`) |
-| `uploadPhoto` | `base64, type, email, mime?` | `{ id, url }` |
-| `submitVisit` | `email, name?, ktp?, asal?, tujuan, keperluan, location, ktp_photo_url?, selfie_url?` | `{ visit_id, status }` |
-| `getLocations` | — | `[{ location_id, name }]` |
-| `getPendingVisits` / `getActiveVisits` | `location` | `[visit…]` |
-| `checkIn` | `visit_id, card_number, confirm_notes` | `{ visit_id, status }` (+ email konfirmasi tamu) |
-| `rejectVisit` | `visit_id, reason` | `{ visit_id, status }` (+ email tamu) |
-| `checkOut` | `visit_id` | `{ visit_id, status }` |
-| `getVisitStatus` | `visit_id` | `{ status, reject_reason, tujuan, nama }` (polling layar tamu) |
-| `addPackage` | `sender, recipient, type?, photo_url?, location` | `{ package_id, status }` |
-| `getPackages` | `status?, location?` | `[package…]` |
-| `pickupPackage` | `package_id` | `{ package_id, status }` |
-| `getHistory` | `location?, from?, to?` | `[visit…]` |
-| `getDashboardStats` | — | `{ totalMonth, doneToday, rejected, activeNow, weekly[], dept[] }` |
-| `getVisitorTimeline` | `search?` | `[{ email, nama, visits[] }]` |
-| `getOfficers` | — | `[{ officer_id, name, email, location_id, location, status }]` |
-| `addOfficer` | `name, email, location_id` | `{ officer_id }` |
-| `updateOfficer` | `officer_id, name?, email?, status?, location_id?` | `{ officer_id }` |
-| `deleteOfficer` | `officer_id` | `{ officer_id }` |
+## Kontrak Endpoint Ringkas
 
-> Catatan: aksi security menerima `actor_email` opsional untuk enforcement NFR-08.
+Request: `{ action, id_token, ...payload }`.
+
+| Action | Otorisasi |
+|---|---|
+| `getRole` | Token valid |
+| `getLocations` | Token valid |
+| `getVisitorByEmail` | Owner email atau admin |
+| `uploadPhoto` | Token valid; MIME/ukuran valid |
+| `submitVisit` | Owner dari token; consent wajib |
+| `getPhoto` | Owner/security lokasi/admin sesuai row foto |
+| `getVisitStatus` | Owner visit atau security/admin berwenang |
+| `getPendingVisits`, `getActiveVisits`, `getHistory` | Security lokasi sendiri atau admin |
+| `checkIn`, `rejectVisit`, `checkOut` | Security lokasi row atau admin |
+| `addPackage`, `getPackages`, `pickupPackage` | Security lokasi row atau admin |
+| `getDashboardStats`, `getVisitorTimeline` | Admin |
+| `getOfficers`, `addOfficer`, `updateOfficer`, `deleteOfficer` | Admin |
 
 ## Deploy (clasp)
+
 ```bash
 cd backend
-clasp create --type webapp --title "VMS Backend"   # buat proyek + .clasp.json
-clasp push                                          # unggah semua .js + manifest
-clasp deploy --description "v1"                      # buat URL Web App (/exec)
+clasp push
+clasp deploy --description "security hardening"
 ```
-Lalu di **editor Apps Script** (`clasp open-script`):
-1. Jalankan `setupSpreadsheet()` sekali → otorisasi scope → catat `api_secret` dari log.
-2. Jalankan `installRetentionTrigger()` sekali → pasang trigger retensi harian.
-3. Pastikan deployment Web App: *Execute as = Me*, *Who has access = Anyone*.
 
-### Deployment aktif (akun alkaboyz88@gmail.com)
-| Item | Nilai |
-|---|---|
-| Script ID | `19vtR6uvsHh1pdtfL7EI417M2zrl35_Ot5iI2xn4Wfqcm2JuORH6_Jjjq` |
-| Editor | https://script.google.com/d/19vtR6uvsHh1pdtfL7EI417M2zrl35_Ot5iI2xn4Wfqcm2JuORH6_Jjjq/edit |
-| Deployment | `AKfycbznOb448TO5XEzujESIcb33XTeDfcNf4kTAIrRNsEZ9fmaCKy5uvM-dK1ybU-V8pmln` |
-| URL `/exec` | https://script.google.com/macros/s/AKfycbznOb448TO5XEzujESIcb33XTeDfcNf4kTAIrRNsEZ9fmaCKy5uvM-dK1ybU-V8pmln/exec |
+Setelah deploy, pastikan Script Properties berisi:
 
-> Status: kode ter-push & ter-deploy. Endpoint masih "Akses Ditolak" sampai pemilik
-> menjalankan `setupSpreadsheet()` (otorisasi scope) di editor. Setelah `clasp push`
-> berikutnya, jalankan `clasp redeploy <deploymentId>` agar URL yang sama ikut terbarui.
+```text
+SPREADSHEET_ID=<id spreadsheet>
+PHOTO_FOLDER_ID=<id folder foto>
+GOOGLE_CLIENT_ID=<OAuth Web Client ID yang sama dengan VITE_GOOGLE_CLIENT_ID>
+```
 
-## Wiring ke frontend
+Secret lama tidak lagi menjadi kontrol akses aplikasi.
+
+## Wiring Frontend
+
 Isi `web/.env`:
+
+```text
+VITE_APPS_SCRIPT_URL=<URL /exec Apps Script>
+VITE_GOOGLE_CLIENT_ID=<OAuth Web Client ID>
 ```
-VITE_APPS_SCRIPT_URL=<URL /exec dari clasp deploy>
-VITE_API_SECRET=<api_secret dari setupSpreadsheet()>
-```
-URL terisi → `USE_MOCK=false` → frontend memanggil backend nyata (lihat `web/src/lib/api.js`).
+
+Jangan menaruh kredensial backend di frontend.

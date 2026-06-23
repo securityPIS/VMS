@@ -75,7 +75,7 @@ const AdminDashboard = ({ user, onLogout }) => {
     try {
       const [o, h, locs, p, a, pk] = await Promise.all([
         api.getOfficers(),
-        api.getHistory({ actor_email: actor }),
+        api.getHistory(),
         api.getLocations(),
         api.getPendingVisits(undefined, actor),
         api.getActiveVisits(undefined, actor),
