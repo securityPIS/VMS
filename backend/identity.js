@@ -10,8 +10,7 @@ function verifyIdToken(data) {
   const clientId = PROP.getProperty(PROP_KEYS.GOOGLE_CLIENT_ID);
   if (!clientId) throw new Error('GOOGLE_CLIENT_ID belum diset di Script Properties.');
 
-  const url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token);
-  const res = UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true });
+  const res = fetchGoogleTokenInfo(token);
   if (res.getResponseCode() !== 200) throw new Error('Token Google tidak valid.');
 
   let claims;
@@ -25,6 +24,16 @@ function verifyIdToken(data) {
   const email = normEmail(claims.email);
   cacheIdentity(token, email, Number(claims.exp || 0));
   return email;
+}
+
+function fetchGoogleTokenInfo(token) {
+  const url = 'https://oauth2.googleapis.com/tokeninfo?id_token=' + encodeURIComponent(token);
+  try {
+    return UrlFetchApp.fetch(url, { method: 'get', muteHttpExceptions: true });
+  } catch (err) {
+    const message = err && err.message ? err.message : String(err);
+    throw new Error('Verifikasi token Google tidak dapat dijalankan: ' + message);
+  }
 }
 
 function validateGoogleClaims(claims, clientId) {

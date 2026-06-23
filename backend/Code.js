@@ -30,11 +30,12 @@ function doGet() {
     ok: true,
     service: 'VMS Apps Script',
     time: new Date().toISOString(),
-    backend_version: '2026-06-23-auth-diagnostics',
+    backend_version: '2026-06-23-auth-diagnostics-urlfetch',
     backend_ready: readiness.backend_ready,
     google_client_id_configured: readiness.google_client_id_configured,
     spreadsheet_configured: readiness.spreadsheet_configured,
     photo_folder_configured: readiness.photo_folder_configured,
+    url_fetch_authorized: readiness.url_fetch_authorized,
   });
 }
 
@@ -42,12 +43,23 @@ function backendReadiness() {
   const googleClientId = !!PROP.getProperty(PROP_KEYS.GOOGLE_CLIENT_ID);
   const spreadsheetId = !!PROP.getProperty(PROP_KEYS.SPREADSHEET_ID);
   const photoFolderId = !!PROP.getProperty(PROP_KEYS.PHOTO_FOLDER_ID);
+  const urlFetchAuthorized = isUrlFetchAuthorized();
   return {
-    backend_ready: googleClientId && spreadsheetId && photoFolderId,
+    backend_ready: googleClientId && spreadsheetId && photoFolderId && urlFetchAuthorized,
     google_client_id_configured: googleClientId,
     spreadsheet_configured: spreadsheetId,
     photo_folder_configured: photoFolderId,
+    url_fetch_authorized: urlFetchAuthorized,
   };
+}
+
+function isUrlFetchAuthorized() {
+  try {
+    const res = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo', { method: 'get', muteHttpExceptions: true });
+    return res && typeof res.getResponseCode === 'function';
+  } catch (err) {
+    return false;
+  }
 }
 
 function dispatch(action, data, authedEmail) {
@@ -94,6 +106,13 @@ function publicError(err) {
     return {
       error: 'Konfigurasi login backend belum lengkap. Hubungi admin.',
       error_code: 'BACKEND_OAUTH_CONFIG_MISSING',
+      error_id: errorId,
+    };
+  }
+  if (/Verifikasi token Google tidak dapat dijalankan|Authorization is required|not authorized|permission to call UrlFetchApp/i.test(message)) {
+    return {
+      error: 'Backend belum diotorisasi untuk verifikasi login Google. Admin perlu authorize Apps Script.',
+      error_code: 'BACKEND_GOOGLE_VERIFY_NOT_AUTHORIZED',
       error_id: errorId,
     };
   }

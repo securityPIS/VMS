@@ -25,7 +25,8 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
   `VITE_APPS_SCRIPT_URL` terisi → memanggil Apps Script nyata; bila kosong →
   **MODE MOCK** otomatis (store di memori) agar dev/demo tetap jalan.
 - **`backend/`** — Google Apps Script + skema Spreadsheet; health endpoint
-  menampilkan readiness aman untuk OAuth, Spreadsheet, dan folder foto.
+  menampilkan readiness aman untuk OAuth, Spreadsheet, folder foto, dan izin
+  `UrlFetchApp` untuk verifikasi Google token.
 - **Dokumen** — PRD, UI/UX, dan `docs/` ada di root.
 
 ---

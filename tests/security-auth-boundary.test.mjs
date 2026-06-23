@@ -28,6 +28,7 @@ test('Apps Script router verifies Google ID token before dispatch', () => {
   assert.match(code, /function publicError/);
   assert.match(code, /OAUTH_CLIENT_MISMATCH/);
   assert.match(code, /BACKEND_DATA_NOT_READY/);
+  assert.match(code, /BACKEND_GOOGLE_VERIFY_NOT_AUTHORIZED/);
   assert.doesNotMatch(code, /verifySecret|secret/);
 });
 
@@ -38,6 +39,7 @@ test('health endpoint exposes safe readiness flags only', () => {
   assert.match(code, /google_client_id_configured/);
   assert.match(code, /spreadsheet_configured/);
   assert.match(code, /photo_folder_configured/);
+  assert.match(code, /url_fetch_authorized/);
   assert.doesNotMatch(code, /spreadsheet_id:\s*PROP\.getProperty/);
 });
 

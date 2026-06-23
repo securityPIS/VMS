@@ -64,13 +64,16 @@ React (Vercel) --POST text/plain {action, id_token, ...}--> doPost (Code.js)
   "backend_ready": true,
   "google_client_id_configured": true,
   "spreadsheet_configured": true,
-  "photo_folder_configured": true
+  "photo_folder_configured": true,
+  "url_fetch_authorized": true
 }
 ```
 
 Saat login gagal, frontend menerima pesan publik dan kode seperti:
 
 - `BACKEND_OAUTH_CONFIG_MISSING` - `GOOGLE_CLIENT_ID` belum di Script Properties.
+- `BACKEND_GOOGLE_VERIFY_NOT_AUTHORIZED` - Apps Script belum authorized untuk
+  memanggil `UrlFetchApp` ke Google tokeninfo.
 - `OAUTH_CLIENT_MISMATCH` - OAuth client frontend tidak sama dengan backend.
 - `BACKEND_DATA_NOT_READY` - properti/sheet database belum siap.
 - `ACCOUNT_INACTIVE` - akun petugas dinonaktifkan admin.
