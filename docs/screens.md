@@ -5,8 +5,8 @@ Layar level-atas untuk peran Visitor (dan halaman login bersama).
 ## `LoginScreen.jsx` 🟡
 Halaman masuk (UIUX 5.1). **Satu metode auth: "Masuk dengan Google".**
 - Props: `onLogin(userData)`.
-- Alur: tombol Google → `signInWithGoogle()` (email terverifikasi) → `api.getRole(email)`
-  → `onLogin(user)`. **Tidak ada pemilihan peran manual** — sistem yang menentukan
+- Alur: tombol resmi Google Identity Services (`renderButton`) → ID token tersimpan
+  di sesi tab → `api.getRole()` → `onLogin(user)`. **Tidak ada pemilihan peran manual** — sistem yang menentukan
   tamu baru/lama, security, atau admin dari email.
 - Email petugas security berasal dari **assignment admin** (panel admin →
   `OfficerAssignmentTab`/`AddOfficerModal`); itulah yang dikenali `getRole` sebagai security.
@@ -14,7 +14,8 @@ Halaman masuk (UIUX 5.1). **Satu metode auth: "Masuk dengan Google".**
 - 🟡 **Mode demo (USE_MOCK):** panel di bawah tombol Google untuk masuk sebagai
   tiap peran (preset + input email bebas) tanpa OAuth asli. Sembunyi otomatis saat
   backend aktif.
-- ⏳ **Sisa go-live:** isi `VITE_GOOGLE_CLIENT_ID` agar tombol Google berfungsi nyata.
+- Backend mengirim pesan login aman + `error_code`; layar login menampilkan kode
+  tersebut agar admin bisa membedakan salah OAuth, database belum siap, atau akun nonaktif.
 
 ## `VisitorFormScreen.jsx` ✅
 Form registrasi tamu baru / reservasi tamu lama (UIUX 5.2–5.3).

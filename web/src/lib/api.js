@@ -56,7 +56,12 @@ async function post(action, payload = {}) {
   });
   if (!res.ok) throw new Error(`API ${action} gagal: HTTP ${res.status}`);
   const data = await res.json();
-  if (data && data.error) throw new Error(data.error);
+  if (data && data.error) {
+    const err = new Error(data.error);
+    err.code = data.error_code || '';
+    err.id = data.error_id || '';
+    throw err;
+  }
   return data;
 }
 

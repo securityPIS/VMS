@@ -20,6 +20,12 @@ const GoogleIcon = () => (
   </svg>
 );
 
+function loginErrorMessage(err, fallback) {
+  const base = err?.message || fallback;
+  if (!err?.code) return base;
+  return `${base} (Kode: ${err.code}${err.id ? `/${err.id}` : ''})`;
+}
+
 const LoginScreen = ({ onLogin }) => {
   const googleButtonRef = useRef(null);
   const [loading, setLoading] = useState(false);
@@ -34,7 +40,7 @@ const LoginScreen = ({ onLogin }) => {
       const user = await api.getRole(email);
       onLogin(user);
     } catch (err) {
-      setError(err.message || 'Gagal masuk. Silakan coba lagi.');
+      setError(loginErrorMessage(err, 'Gagal masuk. Silakan coba lagi.'));
       setLoading(false);
     }
   };
@@ -56,7 +62,7 @@ const LoginScreen = ({ onLogin }) => {
         } catch (err) {
           api.clearAuthSession();
           if (alive) {
-            setError(err.message || 'Gagal masuk. Silakan coba lagi.');
+            setError(loginErrorMessage(err, 'Gagal masuk. Silakan coba lagi.'));
             setLoading(false);
           }
         }

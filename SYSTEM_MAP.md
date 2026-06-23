@@ -24,8 +24,8 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 - **`web/`** — frontend React. **Tersambung backend** lewat `lib/api.js`: bila
   `VITE_APPS_SCRIPT_URL` terisi → memanggil Apps Script nyata; bila kosong →
   **MODE MOCK** otomatis (store di memori) agar dev/demo tetap jalan.
-- **`backend/`** — Google Apps Script + skema Spreadsheet (kode selesai; deploy
-  butuh `setupSpreadsheet()` sekali oleh pemilik akun).
+- **`backend/`** — Google Apps Script + skema Spreadsheet; health endpoint
+  menampilkan readiness aman untuk OAuth, Spreadsheet, dan folder foto.
 - **Dokumen** — PRD, UI/UX, dan `docs/` ada di root.
 
 ---
@@ -40,7 +40,7 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 | `SYSTEM_MAP.md` | ✅ | Dokumen ini — index seluruh file. |
 | `docs/` | ✅ | Dokumentasi per-modul (lihat §6). |
 | `web/` | ✅ | Aplikasi frontend React — tersambung backend via `api.*` (lihat §3–§5). |
-| `backend/` | 🟡 | Apps Script + skema Spreadsheet — kode selesai, butuh `setupSpreadsheet()` (lihat §6). |
+| `backend/` | ✅ | Apps Script + skema Spreadsheet, error mapping aman, dan workflow deploy GAS (lihat §6). |
 
 ---
 
@@ -65,9 +65,9 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 | `src/index.css` | ✅ | Direktif Tailwind + base (font, input 16px anti auto-zoom iOS). |
 | `src/lib/constants.js` | ✅ | Lokasi, jenis paket, konfigurasi badge status, helper waktu. |
 | `src/lib/mockData.js` | 🟡 | Data dummy (visits, packages, officers, chart) + direktori peran & `resolveRoleFromEmail`. Dev only (jadi seed store mock di `api.js`). |
-| `src/lib/api.js` | ✅ | Lapisan data tunggal: mode backend (Apps Script + adapters) atau MODE MOCK (store memori). Semua endpoint PRD §9 + `getPhoto`/`getVisitStatus`. |
+| `src/lib/api.js` | ✅ | Lapisan data tunggal: mode backend (Apps Script + adapters) atau MODE MOCK; error backend membawa `error_code`/`error_id`. |
 | `src/lib/adapters.js` | ✅ | Normalisasi respons backend (snake_case, datetime) → bentuk frontend (camelCase, date/time terpisah). |
-| `src/lib/googleAuth.js` | 🟡 | Login Google (GIS) — `signInWithGoogle()` kembalikan email terverifikasi. Butuh `VITE_GOOGLE_CLIENT_ID`. |
+| `src/lib/googleAuth.js` | 🟡 | Login Google (GIS) — render tombol resmi Google dan kembalikan ID token + email terverifikasi. Butuh `VITE_GOOGLE_CLIENT_ID`. |
 | `src/components/BrandLogo.jsx` | ✅ | Logo Pertamina + wordmark VMS (signature resmi). |
 | `src/components/Button.jsx` | ✅ | Tombol (6 varian: filled/tonal/outlined/text/danger/success). |
 | `src/components/InputField.jsx` | ✅ | Input teks berlabel. |
@@ -81,7 +81,7 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 ### Screens (`src/screens/`)
 | File | Status | Deskripsi |
 |---|:--:|---|
-| `LoginScreen.jsx` | 🟡 | Satu tombol "Masuk dengan Google"; peran dari email (`getRole`). Panel demo saat mock. Butuh `VITE_GOOGLE_CLIENT_ID` untuk OAuth nyata. |
+| `LoginScreen.jsx` | 🟡 | Satu tombol "Masuk dengan Google"; peran dari ID token (`getRole`). Panel demo saat mock; menampilkan kode error login aman. |
 | `VisitorFormScreen.jsx` | ✅ | Form tamu baru/lama: pilih lokasi, foto KTP/selfie (kamera+kompres), submit ke `api.submitVisit`. |
 | `VisitorStatusScreen.jsx` | ✅ | Status kunjungan tamu (PENDING/CHECKED_IN/CHECKED_OUT/REJECTED) + polling `getVisitStatus`. |
 
@@ -114,12 +114,12 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 
 ## 6. Backend — Google Apps Script (`backend/`)
 
-Kode ✅ ditulis (modular, ≤500 baris/file). ⏳ Belum di-deploy/di-setup (lihat
-[docs/backend.md](docs/backend.md) untuk langkah clasp + `setupSpreadsheet()`).
+Kode ✅ ditulis (modular, ≤500 baris/file) dan siap deploy via `clasp` ke
+deployment Web App yang sama. Lihat [docs/backend.md](docs/backend.md).
 
 | File | Status | Deskripsi |
 |---|:--:|---|
-| `backend/Code.js` | ✅ | Router `doPost` (verifyIdToken + rate-limit + dispatch) & `doGet` health. |
+| `backend/Code.js` | ✅ | Router `doPost` (verifyIdToken + rate-limit + dispatch), error mapping aman, & `doGet` health. |
 | `backend/config.js` | ✅ | Konstanta: nama sheet, `HEADERS`, status, peran, retensi, kunci properti. |
 | `backend/sheets.js` | ✅ | Helper Spreadsheet (readRows/appendRow/updateCells/stripRow/id). |
 | `backend/auth.js` | ✅ | `getRole`, `requireAdmin`, `requireSecurityScope`, dan helper RBAC/lokasi. |
@@ -133,7 +133,7 @@ Kode ✅ ditulis (modular, ≤500 baris/file). ⏳ Belum di-deploy/di-setup (lih
 | `backend/retention.js` | ✅ | `purgeOldData` + `installRetentionTrigger` (NFR-07, >30 hari). |
 | `backend/setup.js` | ✅ | `setupSpreadsheet()` — inisialisasi sheet, seed admin/lokasi, dan folder foto. |
 | `backend/appsscript.json` | ✅ | Manifest (V8, webapp Anyone, oauthScopes). |
-| Spreadsheet | ⏳ | Sheet: `Visitors`, `Visits`, `Packages`, `Users`, `Locations` — dibuat oleh `setupSpreadsheet()`. |
+| Spreadsheet | 🟡 | Sheet: `Visitors`, `Visits`, `Packages`, `Users`, `Locations` — dibuat/dirapikan oleh `setupSpreadsheet()`. |
 
 ---
 

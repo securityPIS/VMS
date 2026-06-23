@@ -26,17 +26,19 @@ yang dikelola `api.js` saat MODE MOCK. **Jangan dipakai di produksi.**
 
 ## `googleAuth.js` 🟡 (auth)
 Login satu tombol via **Google Identity Services**.
-- `signInWithGoogle()` — muat skrip GIS, tampilkan dialog Google, kembalikan
-  **email terverifikasi** dari ID token. Peran ditentukan terpisah (`api.getRole`).
-- `GOOGLE_CONFIGURED` — `true` bila `VITE_GOOGLE_CLIENT_ID` terisi.
-- ⚠️ Butuh OAuth Client ID (Google Cloud Console). Bila kosong → throw error jelas;
-  di mode mock, `LoginScreen` melewati GIS dan pakai email demo.
+- `renderGoogleSignInButton(container, onCredential, onError)` — muat skrip GIS,
+  render tombol resmi Google, lalu mengembalikan ID token + email terverifikasi.
+  Peran tetap ditentukan terpisah oleh backend lewat `api.getRole()`.
+- Butuh `VITE_GOOGLE_CLIENT_ID` (Google Cloud Console). Bila kosong, helper
+  melempar error jelas; di mode mock, `LoginScreen` melewati GIS dan pakai email demo.
 
 ## `api.js` ✅ (lapisan data tunggal)
 Satu-satunya tempat memanggil Apps Script. Komponen **tidak** memanggil `fetch`
 langsung — selalu lewat `api.*`. Dua mode transparan ke pemanggil:
 - **Backend** (`VITE_APPS_SCRIPT_URL` terisi): `post(action, payload)` POST
   `text/plain` (hindari CORS preflight), parse JSON, lempar bila `data.error`.
+  Bila backend mengirim `error_code`/`error_id`, keduanya ditempel pada `Error`
+  untuk troubleshooting login/operasional.
   Respons read dipetakan lewat `adapters.js`.
 - **Mock** (`USE_MOCK`, URL kosong): membaca/menulis **store di memori** (salinan
   `mockData`) — read mengembalikan data, mutation benar-benar mengubah store

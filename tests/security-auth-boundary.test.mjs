@@ -25,7 +25,20 @@ test('Apps Script router verifies Google ID token before dispatch', () => {
   assert.match(code, /const authedEmail = verifyIdToken\(data\)/);
   assert.match(code, /enforceRateLimit\(data\.action,\s*authedEmail\)/);
   assert.match(code, /dispatch\(data\.action,\s*data,\s*authedEmail\)/);
+  assert.match(code, /function publicError/);
+  assert.match(code, /OAUTH_CLIENT_MISMATCH/);
+  assert.match(code, /BACKEND_DATA_NOT_READY/);
   assert.doesNotMatch(code, /verifySecret|secret/);
+});
+
+test('health endpoint exposes safe readiness flags only', () => {
+  const code = read('backend', 'Code.js');
+
+  assert.match(code, /backend_ready/);
+  assert.match(code, /google_client_id_configured/);
+  assert.match(code, /spreadsheet_configured/);
+  assert.match(code, /photo_folder_configured/);
+  assert.doesNotMatch(code, /spreadsheet_id:\s*PROP\.getProperty/);
 });
 
 test('admin and security handlers enforce server-side authorization', () => {

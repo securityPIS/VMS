@@ -17,13 +17,14 @@ React (Vercel) --POST text/plain {action, id_token, ...}--> doPost (Code.js)
 
 - `id_token` adalah Google ID token dari GIS dan diverifikasi server-side.
 - Backend menurunkan identitas dari token, bukan dari email di payload.
-- Respons = JSON value langsung. Error client dibuat generik; detail dicatat ke log.
+- Respons = JSON value langsung. Error client dibuat aman: pesan publik + `error_code`
+  dan `error_id`; detail teknis tetap hanya dicatat ke log Apps Script.
 
 ## Daftar File
 
 | File | Isi |
 |---|---|
-| `Code.js` | `doPost` (verify ID token, rate-limit, dispatch), `doGet` health, `jsonOutput`. |
+| `Code.js` | `doPost` (verify ID token, rate-limit, dispatch), error mapping aman, `doGet` health, `jsonOutput`. |
 | `identity.js` | Verifikasi Google ID token via tokeninfo + cache `CacheService`. |
 | `ratelimit.js` | Rate-limit best-effort per action/email. |
 | `validation.js` | Sanitasi input, validasi email/KTP, masking KTP, helper lock. |
@@ -51,6 +52,30 @@ React (Vercel) --POST text/plain {action, id_token, ...}--> doPost (Code.js)
 - `getPhoto` tidak lagi lewat query string; foto hanya keluar bila ID terkait row yang boleh diakses.
 - `checkIn`, `rejectVisit`, `checkOut`, package pickup, dan CRUD petugas memakai `LockService`.
 - KTP penuh tidak dikirim ke frontend; gunakan `ktp_masked` bila perlu ditampilkan.
+
+## Health & Error Login
+
+`GET /exec` mengembalikan health aman untuk operasional:
+
+```json
+{
+  "ok": true,
+  "service": "VMS Apps Script",
+  "backend_ready": true,
+  "google_client_id_configured": true,
+  "spreadsheet_configured": true,
+  "photo_folder_configured": true
+}
+```
+
+Saat login gagal, frontend menerima pesan publik dan kode seperti:
+
+- `BACKEND_OAUTH_CONFIG_MISSING` - `GOOGLE_CLIENT_ID` belum di Script Properties.
+- `OAUTH_CLIENT_MISMATCH` - OAuth client frontend tidak sama dengan backend.
+- `BACKEND_DATA_NOT_READY` - properti/sheet database belum siap.
+- `ACCOUNT_INACTIVE` - akun petugas dinonaktifkan admin.
+
+Jangan mengembalikan stack trace atau isi Script Properties ke frontend.
 
 ## Kontrak Endpoint Ringkas
 
