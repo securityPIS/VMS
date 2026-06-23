@@ -22,8 +22,23 @@ const TITLES = {
   riwayat: 'LOG',
 };
 
+const isStatusText = (value) => ['active', 'inactive'].includes(String(value || '').trim().toLowerCase());
+
+function securityScope(user) {
+  return {
+    location_id: user.location_id || '',
+    location: isStatusText(user.location) ? '' : (user.location || ''),
+  };
+}
+
+function locationLabel(user) {
+  const scope = securityScope(user);
+  return scope.location || scope.location_id || 'Lokasi belum valid';
+}
+
 const SecurityDashboard = ({ user, onLogout }) => {
-  const loc = user.location;
+  const loc = locationLabel(user);
+  const locScope = securityScope(user);
   const actor = user.email;
 
   const [activeTab, setActiveTab] = useState('antrean');
@@ -51,23 +66,25 @@ const SecurityDashboard = ({ user, onLogout }) => {
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
-    try {
-      const [p, a, h, pk] = await Promise.all([
-        api.getPendingVisits(loc, actor),
-        api.getActiveVisits(loc, actor),
-        api.getHistory({ location: loc }),
-        api.getPackages({ location: loc }, actor),
-      ]);
-      setPending(p);
-      setActive(a);
-      setHistory(sortVisitsNewest(h));
-      setPackages(pk);
-    } catch (err) {
-      setError(err.message || 'Gagal memuat data.');
-    } finally {
-      setLoading(false);
-    }
-  }, [loc, actor]);
+    const tasks = [
+      ['Antrean', api.getPendingVisits(locScope), setPending],
+      ['Tamu aktif', api.getActiveVisits(locScope), setActive],
+      ['LOG', api.getHistory(locScope), (rows) => setHistory(sortVisitsNewest(rows))],
+      ['Paket', api.getPackages(locScope), setPackages],
+    ];
+    const results = await Promise.allSettled(tasks.map(([, promise]) => promise));
+    const failures = [];
+    results.forEach((result, index) => {
+      const [label, , apply] = tasks[index];
+      if (result.status === 'fulfilled') {
+        apply(result.value);
+      } else {
+        failures.push(`${label}: ${api.errorDetails(result.reason, 'Gagal memuat data.')}`);
+      }
+    });
+    if (failures.length) setError(failures.join(' '));
+    setLoading(false);
+  }, [locScope.location_id, locScope.location, actor]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -137,7 +154,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
     run(async () => {
       let photoRef = '';
       if (photo) photoRef = (await api.uploadPhoto(photo, 'package', actor)).id;
-      const res = await api.addPackage({ ...draft, location: loc, photo_url: photoRef }, actor);
+      const res = await api.addPackage({ ...draft, ...locScope, photo_url: photoRef }, actor);
       return { ...res, photoRef };
     }, (res) => {
       const d = new Date();
@@ -161,7 +178,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
   return (
     <div className="min-h-screen bg-[#F4F2F6] flex flex-col md:flex-row font-sans">
       <SecuritySidebar
-        user={user}
+        user={{ ...user, location: loc }}
         onLogout={onLogout}
         activeTab={activeTab}
         setActiveTab={setActiveTab}

@@ -76,6 +76,8 @@ Saat login gagal, frontend menerima pesan publik dan kode seperti:
   memanggil `UrlFetchApp` ke Google tokeninfo.
 - `OAUTH_CLIENT_MISMATCH` - OAuth client frontend tidak sama dengan backend.
 - `BACKEND_DATA_NOT_READY` - properti/sheet database belum siap.
+- `OFFICER_ASSIGNMENT_INVALID` - assignment lokasi petugas kosong/tidak aktif,
+  atau data Users lama perlu diselaraskan dengan master Locations.
 - `ACCOUNT_INACTIVE` - akun petugas dinonaktifkan admin.
 
 Jangan mengembalikan stack trace atau isi Script Properties ke frontend.

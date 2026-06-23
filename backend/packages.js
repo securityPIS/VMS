@@ -2,8 +2,8 @@
 
 function addPackage(data, authedEmail) {
   return withScriptLock(() => {
-    const loc = requireActiveLocation({ location_id: data.location_id, location: data.location });
-    requireSecurityScope(authedEmail, { location_id: loc.location_id, location: loc.name });
+    const scope = requireSecurityScope(authedEmail, { location_id: data.location_id, location: data.location });
+    if (!scope.location) throw new Error('Lokasi penugasan tidak valid atau tidak aktif.');
 
     const id = 'PKG-' + shortId();
     appendRow(SHEETS.PACKAGES, {
@@ -13,7 +13,7 @@ function addPackage(data, authedEmail) {
       type: optionalText(data.type || 'Lainnya', 'Jenis paket', 80) || 'Lainnya',
       photo_url: optionalText(data.photo_url, 'Foto paket', 160),
       status: PACKAGE_STATUS.RECEIVED,
-      location: loc.name,
+      location: scope.location,
       security_email: normEmail(authedEmail),
       received_at: now(),
       picked_up_at: '',

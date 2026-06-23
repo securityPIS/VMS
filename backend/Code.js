@@ -140,7 +140,7 @@ function publicError(err) {
   if (/Akun petugas nonaktif/i.test(message)) {
     return { error: 'Akun petugas nonaktif. Hubungi admin.', error_code: 'ACCOUNT_INACTIVE', error_id: errorId };
   }
-  if (/Lokasi petugas belum valid/i.test(message)) {
+  if (/Lokasi petugas belum valid|Lokasi penugasan tidak valid atau tidak aktif/i.test(message)) {
     return {
       error: 'Data penugasan petugas belum lengkap. Hubungi admin.',
       error_code: 'OFFICER_ASSIGNMENT_INVALID',

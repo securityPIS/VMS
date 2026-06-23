@@ -17,7 +17,7 @@ function getOfficers(data, authedEmail) {
         email: u.email,
         location_id: loc.location_id,
         location: loc.name,
-        status: u.status,
+        status: userStatus(u),
       };
     });
 }

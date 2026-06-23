@@ -89,7 +89,7 @@ Google Apps Script Web App  ──►  Google Spreadsheet (DB)
 ### Fitur Security (`src/features/security/`)
 | File | Status | Deskripsi |
 |---|:--:|---|
-| `SecurityDashboard.jsx` | ✅ | Container: muat data via `api.*` (pending/aktif/riwayat/paket), aksi + refetch, loading/error. |
+| `SecurityDashboard.jsx` | ✅ | Container: muat data via `api.*` per scope lokasi, isolasi error per dataset, aksi + refetch. |
 | `SecuritySidebar.jsx` | ✅ | Navigasi (antrean/aktif/paket/riwayat) + badge jumlah pending. |
 | `QueueTab.jsx` | ✅ | Kartu antrean PENDING + Izinkan Masuk/Tolak. |
 | `ActiveVisitsTab.jsx` | ✅ | Tabel tamu CHECKED_IN + Check-out. |

@@ -52,14 +52,28 @@ test('admin and security handlers enforce server-side authorization', () => {
   const analytics = read('backend', 'analytics.js');
   const visits = read('backend', 'visits.js');
   const packages = read('backend', 'packages.js');
+  const code = read('backend', 'Code.js');
 
   assert.match(auth, /function requireAdmin/);
   assert.match(auth, /function requireSecurityScope/);
+  assert.match(auth, /function userStatus/);
+  assert.match(auth, /refs\.some\(\(value\) => value === id \|\| value === name\)/);
+  assert.match(code, /Lokasi petugas belum valid\|Lokasi penugasan tidak valid atau tidak aktif/);
   assert.doesNotMatch(auth, /assertSecurityAt/);
   assert.match(officers, /requireAdmin\(authedEmail\)/);
   assert.match(analytics, /requireAdmin\(authedEmail\)/);
   assert.match(visits, /requireSecurityScope\(authedEmail/);
   assert.match(packages, /requireSecurityScope\(authedEmail/);
+  assert.doesNotMatch(packages, /const loc = requireActiveLocation/);
+});
+
+test('security dashboard isolates load failures and sends location id scope', () => {
+  const dashboard = read('web', 'src', 'features', 'security', 'SecurityDashboard.jsx');
+
+  assert.match(dashboard, /Promise\.allSettled/);
+  assert.match(dashboard, /function securityScope/);
+  assert.match(dashboard, /location_id: user\.location_id/);
+  assert.match(dashboard, /api\.errorDetails/);
 });
 
 test('photo access is POST-tokenized and tied to owned rows', () => {

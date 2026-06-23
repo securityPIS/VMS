@@ -65,6 +65,22 @@ async function post(action, payload = {}) {
   return data;
 }
 
+function errorDetails(err, fallback) {
+  const base = err?.message || fallback;
+  if (!err?.code) return base;
+  return `${base} (Kode: ${err.code}${err.id ? `/${err.id}` : ''})`;
+}
+
+function locationPayload(locationOrFilter) {
+  if (locationOrFilter && typeof locationOrFilter === 'object') {
+    return {
+      location_id: locationOrFilter.location_id || '',
+      location: locationOrFilter.location || '',
+    };
+  }
+  return { location: locationOrFilter || '' };
+}
+
 const DIRECT_SRC = /^(https?:|data:)/;
 const photoCache = new Map();
 async function fetchPhoto(ref) {
@@ -143,6 +159,7 @@ export const api = {
   setAuthSession,
   clearAuthSession,
   hasAuthSession,
+  errorDetails,
 
   getRole: (email) => (USE_MOCK ? Promise.resolve(resolveRoleFromEmail(email)) : post('getRole')),
 
@@ -197,17 +214,19 @@ export const api = {
   },
 
   getPendingVisits: async (location) => {
-    if (USE_MOCK) return store.visits.filter((v) => v.status === 'PENDING' && sameLocation(v.location, location));
-    return (await post('getPendingVisits', { location })).map(adaptVisit);
+    const loc = locationPayload(location);
+    if (USE_MOCK) return store.visits.filter((v) => v.status === 'PENDING' && sameLocation(v.location, loc.location || loc.location_id));
+    return (await post('getPendingVisits', loc)).map(adaptVisit);
   },
 
   getActiveVisits: async (location) => {
-    if (USE_MOCK) return store.visits.filter((v) => v.status === 'CHECKED_IN' && sameLocation(v.location, location));
-    return (await post('getActiveVisits', { location })).map(adaptVisit);
+    const loc = locationPayload(location);
+    if (USE_MOCK) return store.visits.filter((v) => v.status === 'CHECKED_IN' && sameLocation(v.location, loc.location || loc.location_id));
+    return (await post('getActiveVisits', loc)).map(adaptVisit);
   },
 
   getHistory: async (filter = {}) => {
-    if (USE_MOCK) return sortVisitsNewest(clone(store.visits).filter((v) => sameLocation(v.location, filter.location)));
+    if (USE_MOCK) return sortVisitsNewest(clone(store.visits).filter((v) => sameLocation(v.location, filter.location || filter.location_id)));
     return sortVisitsNewest((await post('getHistory', filter || {})).map(adaptVisit));
   },
 
@@ -254,7 +273,7 @@ export const api = {
   getPackages: async (filter = {}) => {
     if (USE_MOCK) {
       return clone(store.packages).filter((p) =>
-        (!filter.status || p.status === filter.status) && sameLocation(p.location, filter.location));
+        (!filter.status || p.status === filter.status) && sameLocation(p.location, filter.location || filter.location_id));
     }
     return (await post('getPackages', filter)).map(adaptPackage);
   },

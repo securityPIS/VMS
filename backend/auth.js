@@ -4,10 +4,13 @@ function getRole(data, authedEmail) {
   const email = validateEmailValue(authedEmail);
   const user = findUserByEmail(email);
   if (user) {
-    if (String(user.status) === USER_STATUS.INACTIVE) {
+    if (userStatus(user) === USER_STATUS.INACTIVE) {
       throw new Error('Akun petugas nonaktif. Hubungi admin.');
     }
     const assignedLocation = resolveLocationForUser(user);
+    if (user.role === ROLE.SECURITY && !assignedLocation.name) {
+      throw new Error('Lokasi petugas belum valid.');
+    }
     return {
       role: user.role,
       name: user.name,
@@ -35,6 +38,20 @@ function findVisitorByEmail(email) {
 
 function normEmail(x) { return String(x || '').trim().toLowerCase(); }
 function normText(x) { return String(x || '').trim().toLowerCase(); }
+function normStatus(x) { return String(x || '').trim(); }
+
+function isUserStatusValue(value) {
+  const status = normText(value);
+  return status === normText(USER_STATUS.ACTIVE) || status === normText(USER_STATUS.INACTIVE);
+}
+
+function userStatus(user) {
+  if (isUserStatusValue(user.status)) return normStatus(user.status);
+  // Kompatibilitas sheet lama: setelah kolom location_id ditambahkan, beberapa
+  // baris lama bisa terbaca sebagai location="Active" dan status kosong.
+  if (isUserStatusValue(user.location)) return normStatus(user.location);
+  return USER_STATUS.ACTIVE;
+}
 
 function nameFromEmail(email) {
   const local = (String(email || '').split('@')[0] || 'Tamu').replace(/[._-]+/g, ' ').trim();
@@ -50,13 +67,15 @@ function activeLocationRows() {
 }
 
 function findActiveLocation(ref) {
-  const locationId = normText(ref && ref.location_id);
-  const locationName = normText(ref && ref.location);
-  if (!locationId && !locationName) return null;
-  return activeLocationRows().find((l) =>
-    (locationId && normText(l.location_id) === locationId) ||
-    (locationName && normText(l.name) === locationName)
-  ) || null;
+  const refs = [ref && ref.location_id, ref && ref.location]
+    .map(normText)
+    .filter(Boolean);
+  if (!refs.length) return null;
+  return activeLocationRows().find((l) => {
+    const id = normText(l.location_id);
+    const name = normText(l.name);
+    return refs.some((value) => value === id || value === name);
+  }) || null;
 }
 
 function requireActiveLocation(ref) {
@@ -73,7 +92,7 @@ function resolveLocationForUser(user) {
 
 function requireUser(authedEmail) {
   const user = findUserByEmail(validateEmailValue(authedEmail));
-  if (!user || String(user.status) === USER_STATUS.INACTIVE) throw new Error('Akses ditolak.');
+  if (!user || userStatus(user) === USER_STATUS.INACTIVE) throw new Error('Akses ditolak.');
   return user;
 }
 
@@ -85,7 +104,7 @@ function requireAdmin(authedEmail) {
 
 function isAdminEmail(authedEmail) {
   const user = findUserByEmail(normEmail(authedEmail));
-  return !!(user && user.role === ROLE.ADMIN && String(user.status) !== USER_STATUS.INACTIVE);
+  return !!(user && user.role === ROLE.ADMIN && userStatus(user) !== USER_STATUS.INACTIVE);
 }
 
 function requireSecurityScope(authedEmail, ref) {
@@ -106,7 +125,11 @@ function requireSecurityScope(authedEmail, ref) {
     return { user, isAdmin: false, location: assigned.name };
   }
 
-  const requested = requireActiveLocation(ref);
+  const requested = findActiveLocation(ref);
+  if (!requested) {
+    if (isUserStatusValue(ref && ref.location)) return { user, isAdmin: false, location: assigned.name };
+    throw new Error('Lokasi penugasan tidak valid atau tidak aktif.');
+  }
   const sameId = assigned.location_id && requested.location_id && normText(assigned.location_id) === normText(requested.location_id);
   const sameName = normText(assigned.name) === normText(requested.name);
   if (!sameId && !sameName) throw new Error('Akses ditolak: lokasi di luar penugasan Anda.');
