@@ -32,10 +32,10 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
     <div className="animate-in fade-in slide-in-from-bottom-2">
       {/* Header "Daftar Paket" hanya tampil di desktop; di mobile tombol registrasi
           dipindah sejajar judul "Paket & Kiriman Masuk" (lihat SecurityDashboard). */}
-      <div className="hidden md:flex justify-between items-center gap-4 bg-[#FDFBFF] p-6 rounded-[28px] shadow-sm border border-[#EAE7EC] mb-6">
+      <div className="hidden md:flex justify-between items-center gap-4 bg-white/85 backdrop-blur-xl p-6 rounded-[28px] shadow-card border border-line mb-6">
         <div>
-          <h2 className="text-xl font-normal text-[#1A1B1E]">Daftar Paket</h2>
-          <p className="text-sm text-[#44474E] mt-1">Registrasi barang titipan kurir / ekspedisi.</p>
+          <h2 className="text-2xl text-display">Daftar Paket</h2>
+          <p className="text-sm text-ink-muted mt-1">Registrasi barang titipan kurir / ekspedisi.</p>
         </div>
         <Button variant="filled" className="px-6 py-3" onClick={onAdd}>
           <Plus size={18} /> Registrasi Paket
@@ -43,7 +43,7 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
       </div>
 
       {packages.length === 0 ? (
-        <div className="p-10 text-center text-[#74777F] bg-[#FDFBFF] rounded-[28px] shadow-sm border border-[#EAE7EC]">
+        <div className="p-10 text-center text-[#74777F] bg-white/85 backdrop-blur-xl rounded-[28px] shadow-card border border-line">
           Belum ada paket yang diregistrasi hari ini.
         </div>
       ) : (
@@ -56,7 +56,7 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
                 tabIndex={0}
                 onClick={() => setDetail(p)}
                 onKeyDown={(event) => openWithKeyboard(event, p)}
-                className="bg-[#FDFBFF] rounded-[20px] border border-[#EAE7EC] p-4 shadow-sm active:scale-[0.99] transition-transform"
+                className="bg-white/85 backdrop-blur-xl rounded-[20px] border border-line p-4 shadow-card active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
@@ -66,9 +66,9 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
                     {showLocation && <div className="text-xs text-[#44474E] mt-1 truncate">{p.location || 'Lokasi belum tercatat'}</div>}
                   </div>
                   {p.photo ? (
-                    <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-sm border border-[#EAE7EC] cursor-pointer shrink-0" />
+                    <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-card border border-line cursor-pointer shrink-0" />
                   ) : (
-                    <div className="w-12 h-12 rounded-[12px] bg-[#F4F2F6] border border-[#EAE7EC] flex items-center justify-center text-[#74777F] shrink-0">
+                    <div className="w-12 h-12 rounded-[12px] bg-ink/[0.03] border border-line flex items-center justify-center text-[#74777F] shrink-0">
                       <Package size={20} />
                     </div>
                   )}
@@ -99,11 +99,11 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
             ))}
           </div>
 
-          <div className="hidden md:block bg-[#FDFBFF] rounded-[28px] shadow-sm border border-[#EAE7EC] overflow-hidden">
+          <div className="hidden md:block bg-white/85 backdrop-blur-xl rounded-[28px] shadow-card border border-line overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#F4F2F6] text-[#44474E] text-sm border-b border-[#EAE7EC]">
+                  <tr className="bg-ink/[0.03] text-[#44474E] text-sm border-b border-line">
                     <th className="p-5 font-medium pl-6">Detail Paket</th>
                     <th className="p-5 font-medium hidden md:table-cell">Untuk (Penerima)</th>
                     {showLocation && <th className="p-5 font-medium hidden lg:table-cell">Lokasi</th>}
@@ -114,13 +114,13 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
                 </thead>
                 <tbody>
                   {packages.map((p) => (
-                    <tr key={p.id} className="border-b border-[#EAE7EC] hover:bg-[#F4F2F6]/50 transition-colors">
+                    <tr key={p.id} className="border-b border-line hover:bg-ink/[0.04] transition-colors">
                       <td className="p-5 pl-6">
                         <div className="flex items-center gap-4">
                           {p.photo ? (
-                            <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-sm hidden sm:block cursor-pointer" />
+                            <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-card hidden sm:block cursor-pointer" />
                           ) : (
-                            <div className="w-12 h-12 rounded-[12px] bg-[#F4F2F6] border border-[#EAE7EC] flex items-center justify-center text-[#74777F] hidden sm:flex">
+                            <div className="w-12 h-12 rounded-[12px] bg-ink/[0.03] border border-line flex items-center justify-center text-[#74777F] hidden sm:flex">
                               <Package size={20} />
                             </div>
                           )}
@@ -164,7 +164,7 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
       >
         <div className="space-y-4 pt-1">
           {detail?.photo && (
-            <RemotePhoto refId={detail.photo} alt="Paket" openInNewTab className="w-28 h-28 rounded-[16px] object-cover border border-[#EAE7EC] cursor-pointer" />
+            <RemotePhoto refId={detail.photo} alt="Paket" openInNewTab className="w-28 h-28 rounded-[16px] object-cover border border-line cursor-pointer" />
           )}
           <div className="grid grid-cols-2 gap-4">
             <DetailLine label="Pengirim" value={detail?.sender} />

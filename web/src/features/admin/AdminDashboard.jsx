@@ -255,7 +255,7 @@ const AdminDashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F2F6] flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen flex flex-col md:flex-row font-sans">
       <AdminSidebar
         user={user}
         onLogout={onLogout}
@@ -268,8 +268,9 @@ const AdminDashboard = ({ user, onLogout }) => {
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
         <div className="mb-8 flex justify-between items-end">
           <div>
-            <h1 className="text-3xl font-normal text-[#1A1B1E] leading-tight">{TITLES[activeTab]}</h1>
-            <p className="text-sm text-[#44474E] mt-1.5">Data operasional Visitor Management System.</p>
+            <p className="eyebrow mb-1.5">Panel Administrator</p>
+            <h1 className="text-3xl md:text-4xl text-display leading-tight">{TITLES[activeTab]}</h1>
+            <p className="text-sm text-ink-muted mt-2">Data operasional Visitor Management System.</p>
           </div>
           {busy && <Loader2 className="text-[#3C6DB2] animate-spin" size={22} />}
         </div>

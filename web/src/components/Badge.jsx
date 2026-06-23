@@ -5,7 +5,7 @@ const Badge = ({ status }) => {
   const st = VISIT_STATUS[status] || VISIT_STATUS.PENDING;
   const Icon = st.icon;
   return (
-    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${st.color}`}>
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold tracking-wide ring-1 ring-inset ring-black/[0.04] ${st.color}`}>
       <Icon size={14} /> {st.label}
     </span>
   );

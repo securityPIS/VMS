@@ -25,7 +25,7 @@ const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
   return (
     <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2">
       {visits.length === 0 ? (
-        <div className="p-10 text-center text-[#74777F] bg-[#FDFBFF] rounded-[28px] shadow-sm border border-[#EAE7EC]">
+        <div className="p-10 text-center text-[#74777F] bg-white/85 backdrop-blur-xl rounded-[28px] shadow-card border border-line">
           Tidak ada tamu aktif saat ini.
         </div>
       ) : (
@@ -38,7 +38,7 @@ const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
                 tabIndex={0}
                 onClick={() => setDetail(v)}
                 onKeyDown={(event) => openWithKeyboard(event, v)}
-                className="bg-[#FDFBFF] rounded-[20px] border border-[#EAE7EC] p-4 shadow-sm active:scale-[0.99] transition-transform"
+                className="bg-white/85 backdrop-blur-xl rounded-[20px] border border-line p-4 shadow-card active:scale-[0.99] transition-transform"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
@@ -71,11 +71,11 @@ const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
             ))}
           </div>
 
-          <div className="hidden md:block bg-[#FDFBFF] rounded-[28px] shadow-sm overflow-hidden border border-[#EAE7EC]">
+          <div className="hidden md:block bg-white/85 backdrop-blur-xl rounded-[28px] shadow-card overflow-hidden border border-line">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-[#F4F2F6] text-[#44474E] text-sm border-b border-[#EAE7EC]">
+                  <tr className="bg-ink/[0.03] text-[#44474E] text-sm border-b border-line">
                     <th className="p-5 font-medium pl-6">Visitor</th>
                     <th className="p-5 font-medium hidden sm:table-cell">Nomor Kartu</th>
                     <th className="p-5 font-medium hidden md:table-cell">Tujuan</th>
@@ -86,11 +86,11 @@ const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
                 </thead>
                 <tbody>
                   {visits.map((v) => (
-                    <tr key={v.id} className="border-b border-[#EAE7EC] hover:bg-[#F4F2F6]/50 transition-colors">
+                    <tr key={v.id} className="border-b border-line hover:bg-ink/[0.04] transition-colors">
                       <td className="p-5 pl-6">
                         <div className="flex items-center gap-4">
                           {v.selfiePhoto && (
-                            <RemotePhoto refId={v.selfiePhoto} alt="Selfie" className="w-12 h-12 rounded-full object-cover shadow-sm hidden lg:block border border-[#EAE7EC]" />
+                            <RemotePhoto refId={v.selfiePhoto} alt="Selfie" className="w-12 h-12 rounded-full object-cover shadow-card hidden lg:block border border-line" />
                           )}
                           <div>
                             <div className="font-medium text-[#1A1B1E] text-base">{v.name}</div>
@@ -126,7 +126,7 @@ const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
       >
         <div className="space-y-4 pt-1">
           {detail?.selfiePhoto && (
-            <RemotePhoto refId={detail.selfiePhoto} alt="Selfie" className="w-20 h-20 rounded-full object-cover border border-[#EAE7EC]" />
+            <RemotePhoto refId={detail.selfiePhoto} alt="Selfie" className="w-20 h-20 rounded-full object-cover border border-line" />
           )}
           <div className="grid grid-cols-2 gap-4">
             <DetailLine label="Nama" value={detail?.name} />

@@ -39,9 +39,9 @@ const AddPackageModal = ({ isOpen, value, setValue, photo, setPhoto, locations, 
         />
         {showLocationSelect && (
           <div className="w-full">
-            <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Lokasi Penerimaan</label>
+            <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Lokasi Penerimaan</label>
             <select
-              className="w-full px-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#3C6DB2] text-[#1A1B1E]"
+              className="w-full px-4 py-3 bg-white/70 border border-line rounded-2xl outline-none text-ink transition-all duration-200 hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15"
               value={value.location_id || ''}
               disabled={!locationOptions.length}
               onChange={(e) => {
@@ -61,9 +61,9 @@ const AddPackageModal = ({ isOpen, value, setValue, photo, setPhoto, locations, 
           </div>
         )}
         <div className="w-full">
-          <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Jenis Barang</label>
+          <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Jenis Barang</label>
           <select
-            className="w-full px-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#3C6DB2] text-[#1A1B1E]"
+            className="w-full px-4 py-3 bg-white/70 border border-line rounded-2xl outline-none text-ink transition-all duration-200 hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15"
             value={value.type}
             onChange={(e) => setValue({ ...value, type: e.target.value })}
           >

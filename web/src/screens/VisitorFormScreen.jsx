@@ -81,21 +81,26 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F2F6] p-4 md:py-8 flex justify-center">
-      <div className="w-full max-w-lg bg-[#FDFBFF] rounded-[28px] shadow-sm overflow-hidden">
-        <div className="bg-[#3C6DB2] p-6 text-white text-center">
-          <BrandLogo className="h-8 justify-center brightness-0 invert mb-4" />
-          <h1 className="text-2xl font-normal">Halo, {user.name}</h1>
-          <p className="text-white/80 text-sm mt-1">
-            {isReturning ? 'Silakan isi detail kunjungan Anda hari ini.' : 'Lengkapi data diri untuk registrasi tamu.'}
-          </p>
+    <div className="min-h-screen p-4 md:py-10 flex justify-center">
+      <div className="w-full max-w-lg surface-raised rounded-[28px] overflow-hidden">
+        <div className="relative bg-ink-gradient p-8 text-white text-center overflow-hidden">
+          <div className="absolute inset-0 opacity-20 pointer-events-none"
+            style={{ backgroundImage: 'radial-gradient(28rem 28rem at 80% -30%, #3C6DB2, transparent 60%)' }} />
+          <div className="relative">
+            <BrandLogo className="h-8 justify-center brightness-0 invert mb-5" />
+            <p className="eyebrow text-gold-soft mb-2">Registrasi Kunjungan</p>
+            <h1 className="text-display text-white text-3xl">Halo, {user.name}</h1>
+            <p className="text-white/70 text-sm mt-2">
+              {isReturning ? 'Silakan isi detail kunjungan Anda hari ini.' : 'Lengkapi data diri untuk registrasi tamu.'}
+            </p>
+          </div>
         </div>
 
         <div className="p-6 space-y-8">
           {!isReturning && (
             <section className="space-y-4">
-              <h2 className="text-lg font-medium text-[#1A1B1E] flex items-center gap-2 border-b border-[#EAE7EC] pb-2">
-                <Users size={20} className="text-[#3C6DB2]" /> Informasi Pribadi
+              <h2 className="text-xl text-display flex items-center gap-2.5 border-b border-line pb-3">
+                <Users size={20} className="text-brand-600" /> Informasi Pribadi
               </h2>
               <InputField label="Nama Lengkap" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
               <InputField label="Nomor KTP (16 Digit)" type="number" placeholder="Contoh: 3171234567890123" value={formData.ktp} onChange={(e) => setFormData({ ...formData, ktp: e.target.value })} />
@@ -105,13 +110,13 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
           )}
 
           <section className="space-y-4">
-            <h2 className="text-lg font-medium text-[#1A1B1E] flex items-center gap-2 border-b border-[#EAE7EC] pb-2">
-              <MapPin size={20} className="text-[#3C6DB2]" /> Detail Kunjungan
+            <h2 className="text-xl text-display flex items-center gap-2.5 border-b border-line pb-3">
+              <MapPin size={20} className="text-brand-600" /> Detail Kunjungan
             </h2>
             <div className="w-full">
-              <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Lokasi / Gerbang Kedatangan</label>
+              <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Lokasi / Gerbang Kedatangan</label>
               <select
-                className="w-full px-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#3C6DB2] text-[#1A1B1E]"
+                className="w-full px-4 py-3 bg-white/70 border border-line rounded-2xl outline-none text-ink transition-all duration-200 hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               >
@@ -123,16 +128,16 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
             </div>
             <InputField label="Orang yang Dituju" placeholder="Nama karyawan / departemen" value={formData.tujuan} onChange={(e) => setFormData({ ...formData, tujuan: e.target.value })} />
             <div className="w-full">
-              <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Keperluan Kunjungan</label>
+              <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Keperluan Kunjungan</label>
               <textarea
-                className="w-full px-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#3C6DB2] text-[#1A1B1E] min-h-[100px] resize-none"
+                className="w-full px-4 py-3 bg-white/70 border border-line rounded-2xl outline-none text-ink transition-all duration-200 hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15 min-h-[100px] resize-none"
                 placeholder="Jelaskan secara singkat keperluan Anda..."
                 value={formData.keperluan}
                 onChange={(e) => setFormData({ ...formData, keperluan: e.target.value })}
               />
             </div>
             <div className="w-full">
-              <label className="block text-xs font-medium text-[#44474E] mb-2 ml-1">Waktu Kunjungan</label>
+              <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-2 ml-0.5">Waktu Kunjungan</label>
               <div className="grid grid-cols-2 gap-2">
                 {[
                   { key: 'NOW', label: 'Sekarang' },
@@ -144,8 +149,8 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
                       key={option.key}
                       type="button"
                       onClick={() => setFormData({ ...formData, scheduleType: option.key, scheduledDate: formData.scheduledDate || today })}
-                      className={`h-12 rounded-full border text-sm font-medium transition-colors ${
-                        active ? 'bg-[#D5E3FF] border-[#3C6DB2] text-[#001B3E]' : 'border-[#CFC7D2] text-[#44474E] hover:bg-[#1A1B1E]/5'
+                      className={`h-12 rounded-full border text-sm font-medium transition-all duration-200 ${
+                        active ? 'bg-brand-50 border-brand-400 text-brand-800 ring-2 ring-brand-500/15' : 'border-line text-ink-soft hover:border-brand-200 hover:bg-white'
                       }`}
                     >
                       {option.label}
@@ -155,15 +160,15 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
               </div>
               {formData.scheduleType === 'SCHEDULE' && (
                 <div className="mt-3">
-                  <label className="block text-xs font-medium text-[#44474E] mb-1 ml-1">Tanggal Kunjungan</label>
+                  <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Tanggal Kunjungan</label>
                   <div className="relative">
-                    <CalendarDays size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#3C6DB2]" />
+                    <CalendarDays size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-brand-600 z-10" />
                     <input
                       type="date"
                       min={today}
                       value={formData.scheduledDate}
                       onChange={(e) => setFormData({ ...formData, scheduledDate: e.target.value })}
-                      className="w-full pl-11 pr-4 py-3 bg-transparent border border-[#74777F] rounded-[8px] outline-none focus:border-2 focus:border-[#3C6DB2] text-[#1A1B1E]"
+                      className="w-full pl-11 pr-4 py-3 bg-white/70 border border-line rounded-2xl outline-none text-ink transition-all duration-200 hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15"
                     />
                   </div>
                 </div>
@@ -172,10 +177,10 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
             <PhotoCapture label="Verifikasi Wajah (Selfie)" value={selfiePhoto} onChange={setSelfiePhoto} capture="user" />
           </section>
 
-          <section className="bg-[#E6F893]/30 p-4 rounded-[16px] border border-[#E6F893]">
+          <section className="bg-gold-light/50 p-4 rounded-2xl border border-gold-soft/40">
             <label className="flex items-start gap-3 cursor-pointer">
-              <input type="checkbox" className="mt-1 w-5 h-5 accent-[#3C6DB2]" checked={formData.consent} onChange={(e) => setFormData({ ...formData, consent: e.target.checked })} />
-              <span className="text-xs text-[#192100] leading-relaxed">
+              <input type="checkbox" className="mt-1 w-5 h-5 accent-brand-600" checked={formData.consent} onChange={(e) => setFormData({ ...formData, consent: e.target.checked })} />
+              <span className="text-xs text-ink-soft leading-relaxed">
                 Saya menyetujui data pribadi saya (nama, NIK, foto wajah, dan KTP) diproses oleh Pertamina untuk keperluan
                 keamanan kunjungan sesuai dengan <strong>Undang-Undang Perlindungan Data Pribadi (UU PDP)</strong>. Data akan
                 disimpan maksimal 1 bulan.

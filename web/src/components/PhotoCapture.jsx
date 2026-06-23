@@ -66,13 +66,13 @@ const PhotoCapture = ({ label, value, onChange, capture = 'user' }) => {
   };
 
   return (
-    <div className="border border-[#74777F]/30 border-dashed p-4 rounded-[16px] text-center bg-[#F4F2F6]">
-      <p className="text-sm font-medium text-[#1A1B1E] mb-2">{label}</p>
+    <div className="border border-dashed border-brand-200 p-4 rounded-2xl text-center bg-brand-50/40">
+      <p className="text-sm font-semibold text-ink mb-2">{label}</p>
       <input ref={inputRef} type="file" accept="image/*" capture={capture} className="hidden" onChange={handleFile} />
       {value ? (
         <div className="flex flex-col items-center gap-2">
-          <img src={value} alt={label} className="w-24 h-24 object-cover rounded-[12px] border border-[#EAE7EC]" />
-          <button type="button" className="text-xs font-medium text-[#3C6DB2] hover:underline" onClick={open}>
+          <img src={value} alt={label} className="w-24 h-24 object-cover rounded-2xl border border-white shadow-premium" />
+          <button type="button" className="text-xs font-semibold text-brand-700 hover:underline" onClick={open}>
             Ambil ulang
           </button>
         </div>
