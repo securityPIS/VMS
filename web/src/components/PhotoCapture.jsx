@@ -19,20 +19,17 @@ function pickType() {
   return _webpSupport ? 'image/webp' : 'image/jpeg';
 }
 
-// Kompres gambar: skala sisi terpanjang ke maxSide, encode WebP/JPEG → data URL.
-async function compress(file, maxSide = 1280, quality = 0.8) {
-  const dataUrl = await new Promise((resolve, reject) => {
-    const r = new FileReader();
-    r.onload = () => resolve(r.result);
-    r.onerror = () => reject(new Error('Gagal membaca berkas foto.'));
-    r.readAsDataURL(file);
-  });
-  const img = await new Promise((resolve, reject) => {
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
     const i = new Image();
     i.onload = () => resolve(i);
     i.onerror = () => reject(new Error('Berkas bukan gambar yang valid.'));
-    i.src = dataUrl;
+    i.src = src;
   });
+}
+
+// Skala sisi terpanjang ke maxSide lalu encode WebP/JPEG → data URL.
+function encodeScaled(img, maxSide, quality) {
   const scale = Math.min(1, maxSide / Math.max(img.width, img.height));
   const w = Math.round(img.width * scale);
   const h = Math.round(img.height * scale);
@@ -41,6 +38,28 @@ async function compress(file, maxSide = 1280, quality = 0.8) {
   canvas.height = h;
   canvas.getContext('2d').drawImage(img, 0, 0, w, h);
   return canvas.toDataURL(pickType(), quality);
+}
+
+// Kompres berkas asli kamera → versi penuh (default 1280px) untuk disimpan/diunduh penuh.
+async function compress(file, maxSide = 1280, quality = 0.8) {
+  const dataUrl = await new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = () => reject(new Error('Gagal membaca berkas foto.'));
+    r.readAsDataURL(file);
+  });
+  return encodeScaled(await loadImage(dataUrl), maxSide, quality);
+}
+
+// Buat thumbnail kecil (default 320px, q0.7) dari data URL versi penuh.
+// Dipakai untuk daftar/tabel agar unduhan mobile jauh lebih ringan.
+export async function makeThumb(dataUrl, maxSide = 320, quality = 0.7) {
+  if (!dataUrl) return '';
+  try {
+    return encodeScaled(await loadImage(dataUrl), maxSide, quality);
+  } catch {
+    return ''; // gagal buat thumb → caller fallback ke versi penuh
+  }
 }
 
 const PhotoCapture = ({ label, value, onChange, capture = 'user' }) => {

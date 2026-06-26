@@ -66,7 +66,7 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
                     {showLocation && <div className="text-xs text-[#44474E] mt-1 truncate">{p.location || 'Lokasi belum tercatat'}</div>}
                   </div>
                   {p.photo ? (
-                    <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-card border border-line cursor-pointer shrink-0" />
+                    <RemotePhoto refId={p.photoThumb || p.photo} fullId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-card border border-line cursor-pointer shrink-0" />
                   ) : (
                     <div className="w-12 h-12 rounded-[12px] bg-ink/[0.03] border border-line flex items-center justify-center text-[#74777F] shrink-0">
                       <Package size={20} />
@@ -118,7 +118,7 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
                       <td className="p-5 pl-6">
                         <div className="flex items-center gap-4">
                           {p.photo ? (
-                            <RemotePhoto refId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-card hidden sm:block cursor-pointer" />
+                            <RemotePhoto refId={p.photoThumb || p.photo} fullId={p.photo} alt="Paket" openInNewTab className="w-12 h-12 rounded-[12px] object-cover shadow-card hidden sm:block cursor-pointer" />
                           ) : (
                             <div className="w-12 h-12 rounded-[12px] bg-ink/[0.03] border border-line flex items-center justify-center text-[#74777F] hidden sm:flex">
                               <Package size={20} />
@@ -164,7 +164,7 @@ const PackagesTab = ({ packages, onAdd, onPickup, showLocation = false }) => {
       >
         <div className="space-y-4 pt-1">
           {detail?.photo && (
-            <RemotePhoto refId={detail.photo} alt="Paket" openInNewTab className="w-28 h-28 rounded-[16px] object-cover border border-line cursor-pointer" />
+            <RemotePhoto refId={detail.photoThumb || detail.photo} fullId={detail.photo} alt="Paket" openInNewTab className="w-28 h-28 rounded-[16px] object-cover border border-line cursor-pointer" />
           )}
           <div className="grid grid-cols-2 gap-4">
             <DetailLine label="Pengirim" value={detail?.sender} />

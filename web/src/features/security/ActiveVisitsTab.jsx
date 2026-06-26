@@ -90,7 +90,7 @@ const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
                       <td className="p-5 pl-6">
                         <div className="flex items-center gap-4">
                           {v.selfiePhoto && (
-                            <RemotePhoto refId={v.selfiePhoto} alt="Selfie" className="w-12 h-12 rounded-full object-cover shadow-card hidden lg:block border border-line" />
+                            <RemotePhoto refId={v.selfieThumb || v.selfiePhoto} alt="Selfie" className="w-12 h-12 rounded-full object-cover shadow-card hidden lg:block border border-line" />
                           )}
                           <div>
                             <div className="font-medium text-[#1A1B1E] text-base">{v.name}</div>
@@ -126,7 +126,7 @@ const ActiveVisitsTab = ({ visits, onCheckout, showLocation = false }) => {
       >
         <div className="space-y-4 pt-1">
           {detail?.selfiePhoto && (
-            <RemotePhoto refId={detail.selfiePhoto} alt="Selfie" className="w-20 h-20 rounded-full object-cover border border-line" />
+            <RemotePhoto refId={detail.selfieThumb || detail.selfiePhoto} alt="Selfie" className="w-20 h-20 rounded-full object-cover border border-line" />
           )}
           <div className="grid grid-cols-2 gap-4">
             <DetailLine label="Nama" value={detail?.name} />

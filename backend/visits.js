@@ -23,6 +23,7 @@ function enrichVisits(rows) {
     const v = byId[r.visitor_id];
     o.asal = v ? v.asal : '';
     o.ktp_photo_url = v ? v.ktp_photo_url : '';
+    o.ktp_thumb_url = v ? v.ktp_thumb_url : '';
     delete o.ktp;
     return o;
   });

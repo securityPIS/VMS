@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import { api } from '../../lib/api';
+import { makeThumb } from '../../components/PhotoCapture';
 import { dateID, sortVisitsNewest, timeID } from '../../lib/constants';
 import AdminSidebar from './AdminSidebar';
 import DashboardOverviewTab from './DashboardOverviewTab';
@@ -234,9 +235,14 @@ const AdminDashboard = ({ user, onLogout }) => {
     const photo = packagePhoto;
     run(async () => {
       let photoRef = '';
-      if (photo) photoRef = (await api.uploadPhoto(photo, 'package', actor)).id;
-      const res = await api.addPackage({ ...draft, photo_url: photoRef }, actor);
-      return { ...res, photoRef };
+      let photoThumbRef = '';
+      if (photo) {
+        const up = await api.uploadPhoto(photo, 'package', await makeThumb(photo));
+        photoRef = up.id;
+        photoThumbRef = up.thumb_id || '';
+      }
+      const res = await api.addPackage({ ...draft, photo_url: photoRef, photo_thumb_url: photoThumbRef }, actor);
+      return { ...res, photoRef, photoThumbRef };
     }, (res) => {
       const d = new Date();
       setPackages((prev) => [{
@@ -246,6 +252,7 @@ const AdminDashboard = ({ user, onLogout }) => {
         type: draft.type,
         status: 'RECEIVED',
         photo: res.photoRef || null,
+        photoThumb: res.photoThumbRef || null,
         location: draft.location,
         date: dateID(d),
         time: timeID(d),

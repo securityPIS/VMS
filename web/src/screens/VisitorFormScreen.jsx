@@ -6,7 +6,7 @@ import { CalendarDays, CheckCircle, MapPin, Users } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
-import PhotoCapture from '../components/PhotoCapture';
+import PhotoCapture, { makeThumb } from '../components/PhotoCapture';
 import { api } from '../lib/api';
 import { dateID, LOCATIONS } from '../lib/constants';
 
@@ -50,14 +50,21 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
     setError('');
     setSubmitting(true);
     try {
+      // Buat thumbnail kecil dulu (di klien) lalu unggah penuh + thumb sekaligus.
       // Selfie & KTP diunggah paralel (tiap upload = round-trip + createFile Drive
       // yang lambat); keduanya independen, jadi tak perlu berurutan.
+      const [selfieThumb, ktpThumb] = await Promise.all([
+        selfiePhoto ? makeThumb(selfiePhoto) : Promise.resolve(''),
+        (!isReturning && ktpPhoto) ? makeThumb(ktpPhoto) : Promise.resolve(''),
+      ]);
       const [selfieRes, ktpRes] = await Promise.all([
-        selfiePhoto ? api.uploadPhoto(selfiePhoto, 'selfie') : Promise.resolve({ id: '' }),
-        (!isReturning && ktpPhoto) ? api.uploadPhoto(ktpPhoto, 'ktp') : Promise.resolve({ id: '' }),
+        selfiePhoto ? api.uploadPhoto(selfiePhoto, 'selfie', selfieThumb) : Promise.resolve({ id: '', thumb_id: '' }),
+        (!isReturning && ktpPhoto) ? api.uploadPhoto(ktpPhoto, 'ktp', ktpThumb) : Promise.resolve({ id: '', thumb_id: '' }),
       ]);
       const selfieRef = selfieRes.id || '';
+      const selfieThumbRef = selfieRes.thumb_id || '';
       const ktpRef = ktpRes.id || '';
+      const ktpThumbRef = ktpRes.thumb_id || '';
 
       const res = await api.submitVisit({
         email: user.email,
@@ -71,7 +78,9 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
         scheduled_date: formData.scheduleType === 'SCHEDULE' ? formData.scheduledDate : '',
         consent: formData.consent,
         selfie_url: selfieRef,
+        selfie_thumb_url: selfieThumbRef,
         ktp_photo_url: ktpRef,
+        ktp_thumb_url: ktpThumbRef,
       });
       onSubmit({ visitId: res.visit_id, status: res.status || 'PENDING', tujuan: formData.tujuan });
     } catch (err) {

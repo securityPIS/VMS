@@ -17,6 +17,7 @@ const VisitorTimelineTab = ({ visits }) => {
           name: visit.name,
           asal: visit.asal,
           photo: visit.selfiePhoto || '',
+          photoThumb: visit.selfieThumb || '',
           history: [],
         };
       }
@@ -62,7 +63,7 @@ const VisitorTimelineTab = ({ visits }) => {
               >
                 <div className="flex items-center gap-5">
                   {visitor.photo ? (
-                    <RemotePhoto refId={visitor.photo} alt={visitor.name} className="w-16 h-16 rounded-full object-cover border-4 border-white" />
+                    <RemotePhoto refId={visitor.photoThumb || visitor.photo} alt={visitor.name} className="w-16 h-16 rounded-full object-cover border-4 border-white" />
                   ) : (
                     <div className="w-16 h-16 rounded-full bg-brand-gradient text-white flex items-center justify-center font-medium text-2xl border-4 border-white shadow-premium">
                       {visitor.name.charAt(0)}

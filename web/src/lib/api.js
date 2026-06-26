@@ -174,9 +174,11 @@ export const api = {
     return fetchPhoto(ref);
   },
 
-  uploadPhoto: async (base64, type) => {
-    if (USE_MOCK) return { ok: true, id: base64, url: base64 };
-    return post('uploadPhoto', { base64, type });
+  // thumbBase64 opsional: bila ada, backend menyimpan 2 file (penuh + thumbnail)
+  // dan mengembalikan { id, thumb_id } dalam satu round-trip.
+  uploadPhoto: async (base64, type, thumbBase64 = '') => {
+    if (USE_MOCK) return { ok: true, id: base64, thumb_id: thumbBase64 || base64, url: base64 };
+    return post('uploadPhoto', { base64, type, thumb_base64: thumbBase64 || '' });
   },
 
   submitVisit: async (data) => {
@@ -190,6 +192,7 @@ export const api = {
         keperluan: data.keperluan, tujuan: data.tujuan, location: data.location || '',
         status: 'PENDING', cardNumber: '', rejectReason: '', confirmNotes: '',
         selfiePhoto: data.selfie_url || '', ktpPhoto: data.ktp_photo_url || '',
+        selfieThumb: data.selfie_thumb_url || '', ktpThumb: data.ktp_thumb_url || '',
         scheduleType,
         scheduledDate,
         scheduledAt: scheduledAt(scheduledDate),
@@ -284,7 +287,8 @@ export const api = {
       const { date, time } = nowParts();
       store.packages.unshift({
         id, sender: data.sender, recipient: data.recipient, type: data.type,
-        status: 'RECEIVED', photo: data.photo_url || null, location: data.location || '', date, time,
+        status: 'RECEIVED', photo: data.photo_url || null, photoThumb: data.photo_thumb_url || null,
+        location: data.location || '', date, time,
       });
       return { ok: true, package_id: id };
     }
