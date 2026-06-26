@@ -93,10 +93,7 @@ const LoginScreen = ({ onLogin }) => {
         <BrandLogo className="h-8 mb-6" />
         <p className="eyebrow mb-2">Selamat Datang</p>
         <h1 className="text-display text-2xl mb-2">Masuk ke Akun Anda</h1>
-        <div className="rule-gold w-16 mb-4" />
-        <p className="text-ink-muted mb-6 text-sm leading-relaxed">
-          Gunakan akun Google Anda. Sistem akan mengenali peran Anda secara otomatis.
-        </p>
+        <div className="rule-gold w-16 mb-6" />
 
         {error && (
           <div role="alert" className="w-full mb-4 px-4 py-3 rounded-2xl bg-[#FBE9EA] border border-[#E9A6AB] text-[#7A1D24] text-sm text-left">
