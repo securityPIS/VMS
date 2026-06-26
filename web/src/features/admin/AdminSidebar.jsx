@@ -1,6 +1,7 @@
 // Sidebar navigasi panel admin (tema gelap, sesuai header dashboard admin).
 import { LogOut, BarChart3, ShieldCheck, History, Clock, Users, Package } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
+import Avatar from '../../components/Avatar';
 
 const NAV = [
   { key: 'dashboard', label: 'Dashboard Overview', icon: BarChart3 },
@@ -22,9 +23,12 @@ const AdminSidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount = 
     </div>
 
     <div className="px-6 py-4 flex items-center gap-4 border-b border-white/10 mb-4 pb-6">
-      <div className="w-12 h-12 rounded-full bg-brand-gradient text-white flex items-center justify-center font-medium text-lg shadow-premium ring-1 ring-white/20">
-        {user.name.charAt(0)}
-      </div>
+      <Avatar
+        src={user.picture}
+        name={user.name}
+        className="w-12 h-12 rounded-full text-lg shadow-premium ring-1 ring-white/20"
+        fallbackClass="bg-brand-gradient text-white"
+      />
       <div>
         <div className="font-semibold text-base">{user.name}</div>
         <div className="text-xs uppercase tracking-[0.18em] text-gold-soft/80 mt-0.5">Administrator</div>

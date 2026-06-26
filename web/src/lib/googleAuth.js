@@ -39,6 +39,8 @@ function parseCredential(jwt) {
     email: payload.email,
     idToken: jwt,
     expiresAt: Number(payload.exp || 0) * 1000,
+    picture: payload.picture || '',   // URL foto profil Google (lh3.googleusercontent.com)
+    name: payload.name || '',
   };
 }
 
