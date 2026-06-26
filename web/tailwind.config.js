@@ -62,7 +62,8 @@ export default {
       backgroundImage: {
         'brand-gradient': 'linear-gradient(135deg, #3C6DB2 0%, #274875 100%)',
         'brand-gradient-soft': 'linear-gradient(135deg, #5587C6 0%, #2F5793 100%)',
-        'ink-gradient': 'linear-gradient(150deg, #1B2026 0%, #0E1216 100%)',
+        // Gradien biru korporat yang dalam (BUKAN hitam) untuk header/sidebar gelap.
+        'ink-gradient': 'linear-gradient(150deg, #2F5793 0%, #16273E 100%)',
         'gold-line': 'linear-gradient(90deg, transparent, #D9BE84 50%, transparent)',
       },
       keyframes: {

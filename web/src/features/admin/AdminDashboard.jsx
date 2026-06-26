@@ -269,7 +269,7 @@ const AdminDashboard = ({ user, onLogout }) => {
         <div className="mb-8 flex justify-between items-end">
           <div>
             <p className="eyebrow mb-1.5">Panel Administrator</p>
-            <h1 className="text-3xl md:text-4xl text-display leading-tight">{TITLES[activeTab]}</h1>
+            <h1 className="text-2xl md:text-3xl text-display leading-tight">{TITLES[activeTab]}</h1>
             <p className="text-sm text-ink-muted mt-2">Data operasional Visitor Management System.</p>
           </div>
           {busy && <Loader2 className="text-[#3C6DB2] animate-spin" size={22} />}

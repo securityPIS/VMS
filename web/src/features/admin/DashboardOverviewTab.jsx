@@ -112,7 +112,7 @@ const MetricCard = ({ icon: Icon, label, value, valueClass = 'text-ink' }) => (
       </span>
       <span className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">{label}</span>
     </div>
-    <div className={`text-5xl text-display ${valueClass}`}>{value}</div>
+    <div className={`text-4xl text-display ${valueClass}`}>{value}</div>
   </div>
 );
 
