@@ -2,6 +2,7 @@
 import { LogOut, Clock, Users, Package, History } from 'lucide-react';
 import BrandLogo from '../../components/BrandLogo';
 import Button from '../../components/Button';
+import Avatar from '../../components/Avatar';
 
 const NAV = [
   { key: 'antrean', label: 'Antrean', icon: Clock },
@@ -20,9 +21,12 @@ const SecuritySidebar = ({ user, onLogout, activeTab, setActiveTab, pendingCount
     </div>
 
     <div className="px-6 py-4 flex items-center gap-3">
-      <div className="w-12 h-12 rounded-full bg-ink-gradient text-white flex items-center justify-center font-medium text-lg shadow-premium ring-1 ring-white/10">
-        {user.name.charAt(0)}
-      </div>
+      <Avatar
+        src={user.picture}
+        name={user.name}
+        className="w-12 h-12 rounded-full text-lg shadow-premium ring-1 ring-white/10"
+        fallbackClass="bg-ink-gradient text-white"
+      />
       <div>
         <div className="font-semibold text-ink">{user.name}</div>
         <div className="text-xs text-ink-muted">Petugas — {user.location || 'Semua Lokasi'}</div>

@@ -58,7 +58,8 @@ const LoginScreen = ({ onLogin }) => {
         try {
           api.setAuthSession(auth.idToken, auth.expiresAt, auth.email);
           const user = await api.getRole(auth.email);
-          if (alive) onLogin(user);
+          // Sematkan foto profil Google (klaim ID token) ke objek user untuk avatar.
+          if (alive) onLogin({ ...user, picture: auth.picture || '', name: user.name || auth.name || '' });
         } catch (err) {
           api.clearAuthSession();
           if (alive) {
