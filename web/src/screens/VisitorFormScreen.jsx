@@ -83,13 +83,13 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
   return (
     <div className="min-h-screen p-4 md:py-10 flex justify-center">
       <div className="w-full max-w-lg surface-raised rounded-[28px] overflow-hidden">
-        <div className="relative bg-ink-gradient p-8 text-white text-center overflow-hidden">
+        <div className="relative bg-ink-gradient px-6 py-8 text-white text-center overflow-hidden">
           <div className="absolute inset-0 opacity-20 pointer-events-none"
             style={{ backgroundImage: 'radial-gradient(28rem 28rem at 80% -30%, #3C6DB2, transparent 60%)' }} />
           <div className="relative">
-            <BrandLogo className="h-8 justify-center brightness-0 invert mb-5" />
-            <p className="eyebrow text-gold-soft mb-2">Registrasi Kunjungan</p>
-            <h1 className="text-display text-white text-3xl">Halo, {user.name}</h1>
+            <BrandLogo className="h-7 justify-center brightness-0 invert mb-4" />
+            <p className="eyebrow text-gold-soft mb-1.5">Registrasi Kunjungan</p>
+            <h1 className="text-display text-white text-2xl">Halo, {user.name}</h1>
             <p className="text-white/70 text-sm mt-2">
               {isReturning ? 'Silakan isi detail kunjungan Anda hari ini.' : 'Lengkapi data diri untuk registrasi tamu.'}
             </p>
