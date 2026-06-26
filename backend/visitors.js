@@ -39,6 +39,7 @@ function submitVisit(data, authedEmail) {
   const keperluan = requiredText(data.keperluan, 'Keperluan', 500);
   const loc = requireActiveLocation({ location_id: data.location_id, location: data.location });
   const selfieUrl = requiredText(data.selfie_url, 'Foto selfie', 160);
+  const selfieThumbUrl = optionalText(data.selfie_thumb_url, 'Thumbnail selfie', 160);
   const schedule = normalizeVisitSchedule(data);
 
   let visitor = findVisitorByEmail(email);
@@ -53,6 +54,7 @@ function submitVisit(data, authedEmail) {
     const ktp = validateKtp(data.ktp);
     const asal = requiredText(data.asal, 'Asal atau instansi', 160);
     const ktpPhotoUrl = requiredText(data.ktp_photo_url, 'Foto KTP', 160);
+    const ktpThumbUrl = optionalText(data.ktp_thumb_url, 'Thumbnail KTP', 160);
     appendRow(SHEETS.VISITORS, {
       visitor_id: visitorId,
       email,
@@ -60,6 +62,7 @@ function submitVisit(data, authedEmail) {
       ktp,
       asal,
       ktp_photo_url: ktpPhotoUrl,
+      ktp_thumb_url: ktpThumbUrl,
       created_at: now(),
     });
   }
@@ -74,6 +77,7 @@ function submitVisit(data, authedEmail) {
     tujuan,
     location: loc.name,
     selfie_url: selfieUrl,
+    selfie_thumb_url: selfieThumbUrl,
     status: VISIT_STATUS.PENDING,
     card_number: '',
     reject_reason: '',

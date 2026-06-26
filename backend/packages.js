@@ -12,6 +12,7 @@ function addPackage(data, authedEmail) {
       recipient: requiredText(data.recipient, 'Penerima', 160),
       type: optionalText(data.type || 'Lainnya', 'Jenis paket', 80) || 'Lainnya',
       photo_url: optionalText(data.photo_url, 'Foto paket', 160),
+      photo_thumb_url: optionalText(data.photo_thumb_url, 'Thumbnail paket', 160),
       status: PACKAGE_STATUS.RECEIVED,
       location: scope.location,
       security_email: normEmail(authedEmail),

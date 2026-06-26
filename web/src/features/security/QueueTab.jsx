@@ -23,10 +23,10 @@ const QueueTab = ({ visits, onCheckIn, onReject, showLocation = false }) => (
 
         <div className="flex gap-3 mb-5">
           {v.ktpPhoto && (
-            <RemotePhoto refId={v.ktpPhoto} alt="KTP" openInNewTab className="w-24 h-16 object-cover rounded-[12px] border border-line cursor-pointer hover:opacity-80" />
+            <RemotePhoto refId={v.ktpThumb || v.ktpPhoto} fullId={v.ktpPhoto} alt="KTP" openInNewTab className="w-24 h-16 object-cover rounded-[12px] border border-line cursor-pointer hover:opacity-80" />
           )}
           {v.selfiePhoto && (
-            <RemotePhoto refId={v.selfiePhoto} alt="Selfie" openInNewTab className="w-16 h-16 object-cover rounded-[12px] border border-line cursor-pointer hover:opacity-80" />
+            <RemotePhoto refId={v.selfieThumb || v.selfiePhoto} fullId={v.selfiePhoto} alt="Selfie" openInNewTab className="w-16 h-16 object-cover rounded-[12px] border border-line cursor-pointer hover:opacity-80" />
           )}
         </div>
 
