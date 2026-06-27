@@ -1,6 +1,6 @@
 // setup.js — inisialisasi SATU KALI. Jalankan setupSpreadsheet() dari editor Apps Script.
-// Membuat spreadsheet + semua sheet & header, seed Locations + admin, generate secret,
-// dan menyiapkan folder foto privat. Mengembalikan info penting (catat secret-nya!).
+// Membuat spreadsheet + semua sheet & header, seed Locations + admin,
+// dan menyiapkan folder foto privat.
 
 // ── Ubah sesuai kebutuhan sebelum menjalankan setup ──
 const SEED_ADMIN_EMAIL = 'admin@pertamina.com';
@@ -21,16 +21,34 @@ function setupSpreadsheet() {
 
   seedLocations();
   seedAdmin();
-  ensureSecret();
   getPhotoFolder();   // buat folder foto privat & simpan id-nya (drive.js)
 
   const info = {
     spreadsheet_id: ss.getId(),
     spreadsheet_url: ss.getUrl(),
-    api_secret: PROP.getProperty(PROP_KEYS.API_SECRET),
     photo_folder_id: PROP.getProperty(PROP_KEYS.PHOTO_FOLDER_ID),
+    google_client_id_configured: !!PROP.getProperty(PROP_KEYS.GOOGLE_CLIENT_ID),
   };
-  Logger.log(JSON.stringify(info, null, 2));   // salin api_secret ke web/.env (VITE_API_SECRET)
+  Logger.log(JSON.stringify(info, null, 2));
+  return info;
+}
+
+function authorizeRuntimeScopes() {
+  // Jalankan sekali dari Apps Script editor setelah ada scope baru di manifest.
+  // Fungsi ini sengaja menyentuh service runtime utama agar Google menampilkan
+  // dialog consent untuk Spreadsheet, Drive, dan UrlFetchApp.
+  const tokenInfoProbe = UrlFetchApp.fetch('https://oauth2.googleapis.com/tokeninfo', {
+    method: 'get',
+    muteHttpExceptions: true,
+  });
+  const spreadsheet = getSpreadsheet();
+  const folder = getPhotoFolder();
+  const info = Object.assign({}, backendReadiness(), {
+    tokeninfo_probe_status: tokenInfoProbe.getResponseCode(),
+    spreadsheet_opened: !!spreadsheet.getId(),
+    photo_folder_opened: !!folder.getId(),
+  });
+  Logger.log(JSON.stringify(info, null, 2));
   return info;
 }
 
@@ -56,12 +74,6 @@ function seedAdmin() {
   if (findUserByEmail(normEmail(SEED_ADMIN_EMAIL))) return;
   appendRow(SHEETS.USERS, {
     email: normEmail(SEED_ADMIN_EMAIL), role: ROLE.ADMIN, name: SEED_ADMIN_NAME,
-    officer_id: '', location: '', status: USER_STATUS.ACTIVE,
+    officer_id: '', location_id: '', location: '', status: USER_STATUS.ACTIVE,
   });
-}
-
-function ensureSecret() {
-  if (PROP.getProperty(PROP_KEYS.API_SECRET)) return;
-  const secret = (Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
-  PROP.setProperty(PROP_KEYS.API_SECRET, secret);
 }

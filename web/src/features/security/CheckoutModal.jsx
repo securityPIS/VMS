@@ -1,4 +1,4 @@
-// Modal Check-out: konfirmasi + pengingat tukar kembali kartu ↔ KTP (UIUX 5.8).
+// Modal Check Out: konfirmasi + pengingat tukar kembali kartu dan KTP (UIUX 5.8).
 import { AlertCircle } from 'lucide-react';
 import ModalBase from '../../components/ModalBase';
 import Button from '../../components/Button';
@@ -7,12 +7,12 @@ const CheckoutModal = ({ visit, onConfirm, onClose, busy }) => (
   <ModalBase
     isOpen={!!visit}
     onClose={onClose}
-    title="Check-out Visitor"
+    title="Check Out Visitor"
     footer={
       <>
         <Button variant="text" onClick={onClose} disabled={busy}>Batal</Button>
         <Button variant="filled" onClick={onConfirm} disabled={busy}>
-          {busy ? 'Memproses…' : 'Konfirmasi Selesai'}
+          {busy ? 'Memproses...' : 'Konfirmasi Check Out'}
         </Button>
       </>
     }

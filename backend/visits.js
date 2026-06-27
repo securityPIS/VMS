@@ -1,14 +1,13 @@
-// visits.js — alur kunjungan untuk security (antrean → check-in/reject → check-out)
-// dan riwayat untuk admin.
+// visits.js - alur kunjungan dan riwayat operasional.
 
-function getPendingVisits(data) {
-  assertSecurityAt(data, data.location);
-  return enrichVisits(filterVisits(VISIT_STATUS.PENDING, data.location));
+function getPendingVisits(data, authedEmail) {
+  const scope = requireSecurityScope(authedEmail, data);
+  return enrichVisits(filterVisits(VISIT_STATUS.PENDING, scope.location));
 }
 
-function getActiveVisits(data) {
-  assertSecurityAt(data, data.location);
-  return enrichVisits(filterVisits(VISIT_STATUS.CHECKED_IN, data.location));
+function getActiveVisits(data, authedEmail) {
+  const scope = requireSecurityScope(authedEmail, data);
+  return enrichVisits(filterVisits(VISIT_STATUS.CHECKED_IN, scope.location));
 }
 
 function filterVisits(status, location) {
@@ -16,8 +15,6 @@ function filterVisits(status, location) {
     v.status === status && (!location || normEmail(v.location) === normEmail(location)));
 }
 
-// Gabungkan data master Visitor (asal + foto KTP) ke tiap baris kunjungan agar
-// kartu antrean/riwayat di frontend bisa menampilkan instansi & foto verifikasi.
 function enrichVisits(rows) {
   const byId = {};
   readRows(SHEETS.VISITORS).forEach((v) => { byId[v.visitor_id] = v; });
@@ -26,70 +23,83 @@ function enrichVisits(rows) {
     const v = byId[r.visitor_id];
     o.asal = v ? v.asal : '';
     o.ktp_photo_url = v ? v.ktp_photo_url : '';
+    o.ktp_thumb_url = v ? v.ktp_thumb_url : '';
+    delete o.ktp;
     return o;
   });
 }
 
-// Status satu kunjungan (untuk polling layar tamu). Tanpa enforcement lokasi —
-// hanya butuh secret + visit_id yang valid.
-function getVisitStatus(data) {
+function getVisitStatus(data, authedEmail) {
   const row = findVisitRow(data.visit_id);
+  requireVisitAccess(authedEmail, row);
   return { status: row.status, reject_reason: row.reject_reason || '', tujuan: row.tujuan, nama: row.nama };
 }
 
-// Check-in: validasi PENDING + nomor kartu wajib & unik antar tamu CHECKED_IN (FR-10).
-function checkIn(data) {
-  const row = findVisitRow(data.visit_id);
-  if (row.status !== VISIT_STATUS.PENDING) throw new Error('Kunjungan bukan status PENDING.');
-  const card = String(data.card_number || '').trim();
-  if (!card) throw new Error('Nomor kartu wajib diisi.');
+function checkIn(data, authedEmail) {
+  return withScriptLock(() => {
+    const rows = readRows(SHEETS.VISITS);
+    const row = rows.find((v) => v.visit_id === data.visit_id);
+    if (!row) throw new Error('Kunjungan tidak ditemukan.');
+    requireSecurityScope(authedEmail, { location: row.location });
+    if (row.status !== VISIT_STATUS.PENDING) throw new Error('Kunjungan bukan status PENDING.');
 
-  const dup = readRows(SHEETS.VISITS).some((v) =>
-    v.status === VISIT_STATUS.CHECKED_IN && String(v.card_number).trim() === card);
-  if (dup) throw new Error('Nomor kartu sedang digunakan tamu lain.');
+    const card = requiredText(data.card_number, 'Nomor kartu', 32);
+    const notes = requiredText(data.confirm_notes || data.notes, 'Catatan konfirmasi', 500);
+    const dup = rows.some((v) =>
+      v.status === VISIT_STATUS.CHECKED_IN && String(v.card_number).trim() === card);
+    if (dup) throw new Error('Nomor kartu sedang digunakan tamu lain.');
 
-  updateCells(SHEETS.VISITS, row._row, {
-    status: VISIT_STATUS.CHECKED_IN,
-    card_number: card,
-    security_email: normEmail(data.actor_email),
-    checkin_at: now(),
+    updateCells(SHEETS.VISITS, row._row, {
+      status: VISIT_STATUS.CHECKED_IN,
+      card_number: card,
+      confirm_notes: notes,
+      security_email: normEmail(authedEmail),
+      checkin_at: now(),
+    });
+    sendConfirmEmail(row, notes);
+    return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.CHECKED_IN };
   });
-  return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.CHECKED_IN };
 }
 
-// Reject: alasan wajib + kirim email pemberitahuan ke tamu (FR-13 / §11).
-function rejectVisit(data) {
-  const row = findVisitRow(data.visit_id);
-  const reason = String(data.reason || '').trim();
-  if (!reason) throw new Error('Alasan penolakan wajib diisi.');
+function rejectVisit(data, authedEmail) {
+  return withScriptLock(() => {
+    const row = findVisitRow(data.visit_id);
+    requireSecurityScope(authedEmail, { location: row.location });
+    const reason = requiredText(data.reason, 'Alasan penolakan', 500);
 
-  updateCells(SHEETS.VISITS, row._row, {
-    status: VISIT_STATUS.REJECTED,
-    reject_reason: reason,
-    security_email: normEmail(data.actor_email),
+    updateCells(SHEETS.VISITS, row._row, {
+      status: VISIT_STATUS.REJECTED,
+      reject_reason: reason,
+      security_email: normEmail(authedEmail),
+    });
+    sendRejectEmail(row.email, row.nama, reason);
+    return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.REJECTED };
   });
-  sendRejectEmail(row.email, row.nama, reason);   // email.js
-  return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.REJECTED };
 }
 
-function checkOut(data) {
-  const row = findVisitRow(data.visit_id);
-  if (row.status !== VISIT_STATUS.CHECKED_IN) throw new Error('Kunjungan belum CHECKED_IN.');
-  updateCells(SHEETS.VISITS, row._row, { status: VISIT_STATUS.CHECKED_OUT, checkout_at: now() });
-  return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.CHECKED_OUT };
+function checkOut(data, authedEmail) {
+  return withScriptLock(() => {
+    const row = findVisitRow(data.visit_id);
+    requireSecurityScope(authedEmail, { location: row.location });
+    if (row.status !== VISIT_STATUS.CHECKED_IN) throw new Error('Kunjungan belum CHECKED_IN.');
+    updateCells(SHEETS.VISITS, row._row, { status: VISIT_STATUS.CHECKED_OUT, checkout_at: now() });
+    return { ok: true, visit_id: data.visit_id, status: VISIT_STATUS.CHECKED_OUT };
+  });
 }
 
-// Riwayat lengkap untuk admin, dengan filter opsional lokasi & rentang tanggal.
-function getHistory(data) {
+function getHistory(data, authedEmail) {
+  const scope = requireSecurityScope(authedEmail, data);
   let rows = readRows(SHEETS.VISITS);
-  if (data.location) rows = rows.filter((v) => normEmail(v.location) === normEmail(data.location));
+  if (scope.location) rows = rows.filter((v) => normEmail(v.location) === normEmail(scope.location));
   if (data.from) rows = rows.filter((v) => v.created_at && new Date(v.created_at) >= new Date(data.from));
   if (data.to) rows = rows.filter((v) => v.created_at && new Date(v.created_at) <= new Date(data.to));
+  rows.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
   return enrichVisits(rows);
 }
 
 function findVisitRow(visitId) {
-  const row = readRows(SHEETS.VISITS).find((v) => v.visit_id === visitId);
-  if (!row) throw new Error('Kunjungan tidak ditemukan: ' + visitId);
+  const id = requiredText(visitId, 'ID kunjungan', 80);
+  const row = readRows(SHEETS.VISITS).find((v) => v.visit_id === id);
+  if (!row) throw new Error('Kunjungan tidak ditemukan.');
   return row;
 }

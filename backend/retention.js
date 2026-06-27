@@ -3,9 +3,9 @@
 
 function purgeOldData() {
   const cutoff = new Date(Date.now() - RETENTION_DAYS * 86400000);
-  purgeSheetByDate(SHEETS.VISITS, 'created_at', cutoff, ['selfie_url']);
-  purgeSheetByDate(SHEETS.PACKAGES, 'received_at', cutoff, ['photo_url']);
-  purgeSheetByDate(SHEETS.VISITORS, 'created_at', cutoff, ['ktp_photo_url']);
+  purgeSheetByDate(SHEETS.VISITS, 'created_at', cutoff, ['selfie_url', 'selfie_thumb_url']);
+  purgeSheetByDate(SHEETS.PACKAGES, 'received_at', cutoff, ['photo_url', 'photo_thumb_url']);
+  purgeSheetByDate(SHEETS.VISITORS, 'created_at', cutoff, ['ktp_photo_url', 'ktp_thumb_url']);
 }
 
 // Hapus baris yang lebih tua dari cutoff + buang file foto terkait ke Trash.

@@ -27,17 +27,18 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
   }, [statusData.visitId, status]);
 
   return (
-    <div className="min-h-screen bg-[#F4F2F6] flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#FDFBFF] rounded-[28px] shadow-sm p-8 text-center flex flex-col items-center animate-in zoom-in-95 duration-300">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="w-full max-w-md surface-raised rounded-[28px] p-8 md:p-10 text-center flex flex-col items-center animate-in zoom-in-95 duration-500">
         <BrandLogo className="h-8 mb-8" />
 
         {status === 'PENDING' && (
           <>
-            <div className="w-24 h-24 bg-[#FFEFD6] text-[#5E4200] rounded-full flex items-center justify-center mb-6 animate-pulse">
-              <Clock size={48} />
+            <div className="w-20 h-20 bg-[#FFEFD6] text-[#5E4200] rounded-full flex items-center justify-center mb-6 ring-8 ring-[#FFEFD6]/40 animate-pulse-soft">
+              <Clock size={38} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Menunggu Verifikasi</h2>
-            <p className="text-[#44474E] text-sm mb-6">
+            <p className="eyebrow mb-2">Status Kunjungan</p>
+            <h2 className="text-display text-2xl mb-3">Menunggu</h2>
+            <p className="text-ink-muted text-sm mb-6 leading-relaxed">
               Mohon tunggu sebentar di lobi. Petugas keamanan sedang memverifikasi data dan tujuan Anda (
               <strong>{statusData.tujuan}</strong>).
             </p>
@@ -46,11 +47,12 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
 
         {status === 'CHECKED_IN' && (
           <>
-            <div className="w-24 h-24 bg-[#E6F893] text-[#192100] rounded-full flex items-center justify-center mb-6">
-              <CheckCircle size={48} />
+            <div className="w-20 h-20 bg-[#E6F893] text-[#192100] rounded-full flex items-center justify-center mb-6 ring-8 ring-[#E6F893]/40">
+              <CheckCircle size={38} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Kunjungan Disetujui</h2>
-            <p className="text-[#44474E] text-sm mb-6">
+            <p className="eyebrow mb-2">Status Kunjungan</p>
+            <h2 className="text-display text-2xl mb-3">Check In</h2>
+            <p className="text-ink-muted text-sm mb-6 leading-relaxed">
               Silakan masuk. Jangan lupa mengenakan kartu visitor Anda selama berada di dalam area.
             </p>
           </>
@@ -58,11 +60,12 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
 
         {status === 'CHECKED_OUT' && (
           <>
-            <div className="w-24 h-24 bg-[#EFEDF1] text-[#44474E] rounded-full flex items-center justify-center mb-6">
-              <LogOut size={48} />
+            <div className="w-20 h-20 bg-[#EFEDF1] text-[#44474E] rounded-full flex items-center justify-center mb-6 ring-8 ring-[#EFEDF1]/50">
+              <LogOut size={38} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Kunjungan Selesai</h2>
-            <p className="text-[#44474E] text-sm mb-6">
+            <p className="eyebrow mb-2">Status Kunjungan</p>
+            <h2 className="text-display text-2xl mb-3">Check Out</h2>
+            <p className="text-ink-muted text-sm mb-6 leading-relaxed">
               Terima kasih atas kunjungan Anda. Pastikan kartu visitor telah dikembalikan ke petugas.
             </p>
           </>
@@ -70,11 +73,12 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
 
         {status === 'REJECTED' && (
           <>
-            <div className="w-24 h-24 bg-[#FFDAD6] text-[#410002] rounded-full flex items-center justify-center mb-6">
-              <X size={48} />
+            <div className="w-20 h-20 bg-[#FFDAD6] text-[#410002] rounded-full flex items-center justify-center mb-6 ring-8 ring-[#FFDAD6]/40">
+              <X size={38} />
             </div>
-            <h2 className="text-2xl font-normal text-[#1A1B1E] mb-2">Kunjungan Ditolak</h2>
-            <div className="bg-[#FFDAD6]/30 border border-[#FFDAD6] p-4 rounded-[16px] text-sm text-[#410002] mb-6 w-full text-left">
+            <p className="eyebrow mb-2">Status Kunjungan</p>
+            <h2 className="text-display text-2xl mb-3">Ditolak</h2>
+            <div className="bg-[#FFDAD6]/30 border border-[#FFDAD6] p-4 rounded-2xl text-sm text-[#410002] mb-6 w-full text-left">
               <strong>Alasan:</strong> {rejectReason || 'Tujuan tidak dapat ditemui.'}
             </div>
           </>

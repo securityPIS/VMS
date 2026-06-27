@@ -17,6 +17,7 @@ const VisitorTimelineTab = ({ visits }) => {
           name: visit.name,
           asal: visit.asal,
           photo: visit.selfiePhoto || '',
+          photoThumb: visit.selfieThumb || '',
           history: [],
         };
       }
@@ -35,7 +36,7 @@ const VisitorTimelineTab = ({ visits }) => {
 
   return (
     <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2">
-      <div className="bg-[#FDFBFF] p-5 rounded-[28px] shadow-sm border border-[#EAE7EC] flex items-center gap-3">
+      <div className="bg-white/85 backdrop-blur-xl p-5 rounded-[28px] shadow-card border border-line flex items-center gap-3">
         <Search className="text-[#74777F] ml-2" size={24} />
         <input
           type="text"
@@ -52,8 +53,8 @@ const VisitorTimelineTab = ({ visits }) => {
           return (
             <div
               key={visitor.name}
-              className={`bg-[#FDFBFF] rounded-[28px] shadow-sm border overflow-hidden transition-all duration-300 ${
-                isExpanded ? 'border-[#3C6DB2] ring-1 ring-[#3C6DB2]' : 'border-[#EAE7EC] hover:border-[#3C6DB2]/50'
+              className={`bg-white/85 backdrop-blur-xl rounded-[28px] shadow-card border overflow-hidden transition-all duration-300 ${
+                isExpanded ? 'border-[#3C6DB2] ring-1 ring-[#3C6DB2]' : 'border-line hover:border-[#3C6DB2]/50'
               }`}
             >
               <div
@@ -62,14 +63,14 @@ const VisitorTimelineTab = ({ visits }) => {
               >
                 <div className="flex items-center gap-5">
                   {visitor.photo ? (
-                    <RemotePhoto refId={visitor.photo} alt={visitor.name} className="w-16 h-16 rounded-full object-cover border-4 border-[#F4F2F6]" />
+                    <RemotePhoto refId={visitor.photoThumb || visitor.photo} alt={visitor.name} className="w-16 h-16 rounded-full object-cover border-4 border-white" />
                   ) : (
-                    <div className="w-16 h-16 rounded-full bg-[#D5E3FF] text-[#001B3E] flex items-center justify-center font-medium text-2xl border-4 border-[#F4F2F6]">
+                    <div className="w-16 h-16 rounded-full bg-brand-gradient text-white flex items-center justify-center font-medium text-2xl border-4 border-white shadow-premium">
                       {visitor.name.charAt(0)}
                     </div>
                   )}
                   <div>
-                    <h3 className="text-xl font-medium text-[#1A1B1E]">{visitor.name}</h3>
+                    <h3 className="text-xl text-display">{visitor.name}</h3>
                     <p className="text-base text-[#74777F] mt-0.5">{visitor.asal}</p>
                   </div>
                 </div>
@@ -78,24 +79,24 @@ const VisitorTimelineTab = ({ visits }) => {
                     <div className="text-base font-medium text-[#1A1B1E]">{visitor.history.length} Kunjungan</div>
                     <div className="text-sm text-[#74777F]">Terakhir: {visitor.history[0].date}</div>
                   </div>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isExpanded ? 'bg-[#D5E3FF] text-[#001B3E]' : 'bg-[#F4F2F6] text-[#44474E]'}`}>
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors ${isExpanded ? 'bg-[#D5E3FF] text-[#001B3E]' : 'bg-ink/[0.03] text-[#44474E]'}`}>
                     <ChevronRight className={`transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} size={24} />
                   </div>
                 </div>
               </div>
 
               {isExpanded && (
-                <div className="px-8 pb-8 pt-4 border-t border-[#EAE7EC] bg-[#FDFBFF] animate-in slide-in-from-top-2">
+                <div className="px-8 pb-8 pt-4 border-t border-line bg-white/85 backdrop-blur-xl animate-in slide-in-from-top-2">
                   <h4 className="text-base font-medium text-[#1A1B1E] mb-6">Riwayat Perjalanan (Timeline)</h4>
-                  <div className="relative border-l-2 border-[#EAE7EC] ml-3 space-y-6">
+                  <div className="relative border-l-2 border-line ml-3 space-y-6">
                     {visitor.history.map((visit, idx) => (
                       <div key={idx} className="relative pl-8">
-                        <div className="absolute -left-[11px] top-2 w-5 h-5 rounded-full bg-[#FDFBFF] border-[3px] border-[#3C6DB2]" />
-                        <div className="bg-[#F4F2F6] p-5 rounded-[20px] hover:shadow-md transition-shadow">
+                        <div className="absolute -left-[11px] top-2 w-5 h-5 rounded-full bg-white/85 backdrop-blur-xl border-[3px] border-[#3C6DB2]" />
+                        <div className="bg-ink/[0.03] p-5 rounded-[20px] hover:shadow-md transition-shadow">
                           <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                             <div className="flex items-center gap-3">
                               <span className="font-medium text-[#1A1B1E] text-base">{visit.date}</span>
-                              <span className="text-sm text-[#74777F] bg-[#EAE7EC] px-3 py-1 rounded-full">
+                              <span className="text-sm text-[#74777F] bg-ink/[0.06] px-3 py-1 rounded-full">
                                 {visit.time} {visit.timeOut ? `- ${visit.timeOut}` : ''}
                               </span>
                             </div>
@@ -128,7 +129,7 @@ const VisitorTimelineTab = ({ visits }) => {
         })}
 
         {filtered.length === 0 && (
-          <div className="py-16 text-center text-[#74777F] bg-[#FDFBFF] rounded-[28px] border border-[#EAE7EC] border-dashed">
+          <div className="py-16 text-center text-[#74777F] bg-white/85 backdrop-blur-xl rounded-[28px] border border-line border-dashed">
             Tidak ada visitor yang cocok dengan pencarian.
           </div>
         )}

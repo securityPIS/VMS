@@ -3,12 +3,12 @@
 // ada pemilihan peran manual. Email petugas security di-assign oleh admin
 // (panel admin), itulah yang dipakai getRole untuk mengenali security.
 // Panel "Mode demo" hanya tampil saat USE_MOCK (backend belum aktif).
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
 import { api, USE_MOCK } from '../lib/api';
-import { signInWithGoogle } from '../lib/googleAuth';
+import { renderGoogleSignInButton } from '../lib/googleAuth';
 import { DEV_LOGIN_PRESETS } from '../lib/mockData';
 
 const GoogleIcon = () => (
@@ -20,7 +20,14 @@ const GoogleIcon = () => (
   </svg>
 );
 
+function loginErrorMessage(err, fallback) {
+  const base = err?.message || fallback;
+  if (!err?.code) return base;
+  return `${base} (Kode: ${err.code}${err.id ? `/${err.id}` : ''})`;
+}
+
 const LoginScreen = ({ onLogin }) => {
+  const googleButtonRef = useRef(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [devEmail, setDevEmail] = useState('');
@@ -33,55 +40,96 @@ const LoginScreen = ({ onLogin }) => {
       const user = await api.getRole(email);
       onLogin(user);
     } catch (err) {
-      setError(err.message || 'Gagal masuk. Silakan coba lagi.');
+      setError(loginErrorMessage(err, 'Gagal masuk. Silakan coba lagi.'));
       setLoading(false);
     }
   };
 
-  const handleGoogle = async () => {
-    // MODE DEMO: anggap login Google sukses sebagai tamu baru (jalur happy path).
-    // Uji peran lain lewat panel demo di bawah.
-    if (USE_MOCK) return signIn('tamu.baru@gmail.com');
-    setError('');
-    setLoading(true);
-    try {
-      const email = await signInWithGoogle();
-      await signIn(email);
-    } catch (err) {
-      setError(err.message);
-      setLoading(false);
-    }
+  useEffect(() => {
+    if (USE_MOCK) return undefined;
+    let alive = true;
+    let cleanup = null;
+    renderGoogleSignInButton(
+      googleButtonRef.current,
+      async (auth) => {
+        if (!alive) return;
+        setError('');
+        setLoading(true);
+        try {
+          api.setAuthSession(auth.idToken, auth.expiresAt, auth.email);
+          const user = await api.getRole(auth.email);
+          // Sematkan foto profil + nama (first/last) Google ke objek user.
+          // Nama lengkap tamu baru diambil dari akun Google-nya sendiri.
+          if (alive) {
+            onLogin({
+              ...user,
+              picture: auth.picture || '',
+              name: auth.name || user.name || '',
+              firstName: auth.firstName || '',
+              lastName: auth.lastName || '',
+            });
+          }
+        } catch (err) {
+          api.clearAuthSession();
+          if (alive) {
+            setError(loginErrorMessage(err, 'Gagal masuk. Silakan coba lagi.'));
+            setLoading(false);
+          }
+        }
+      },
+      (err) => {
+        if (alive) setError(err.message || 'Gagal menerima token Google.');
+      },
+    )
+      .then((fn) => { cleanup = fn; })
+      .catch((err) => {
+        if (alive) setError(err.message || 'Gagal memuat Google Sign-In.');
+      });
+    return () => {
+      alive = false;
+      if (cleanup) cleanup();
+    };
+  }, [onLogin]);
+
+  const handleGoogleMock = async () => {
+    return signIn('tamu.baru@gmail.com');
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F2F6] flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#FDFBFF] rounded-[28px] shadow-sm p-8 flex flex-col items-center text-center">
-        <BrandLogo className="h-12 mb-8 justify-center" />
-        <h1 className="text-2xl font-normal text-[#1A1B1E] mb-2">Selamat Datang</h1>
-        <p className="text-[#44474E] mb-8 text-sm">
-          Masuk dengan akun Google Anda. Sistem akan mengenali peran Anda secara otomatis.
-        </p>
+    // Hanya kotak login yang ditampilkan, terpusat & dioptimalkan untuk layar mobile.
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6">
+      <div className="w-full max-w-sm surface-raised rounded-3xl p-6 sm:p-8 flex flex-col items-center text-center">
+        <BrandLogo className="h-8 mb-6" />
+        <p className="eyebrow mb-2">Selamat Datang</p>
+        <h1 className="text-display text-2xl mb-2">Masuk ke Akun Anda</h1>
+        <div className="rule-gold w-16 mb-6" />
 
         {error && (
-          <div role="alert" className="w-full mb-4 px-4 py-3 rounded-[12px] bg-[#FBE9EA] border border-[#E9A6AB] text-[#7A1D24] text-sm text-left">
+          <div role="alert" className="w-full mb-4 px-4 py-3 rounded-2xl bg-[#FBE9EA] border border-[#E9A6AB] text-[#7A1D24] text-sm text-left">
             {error}
           </div>
         )}
 
         <Button
           variant="outlined"
-          className="w-full h-14 text-base bg-white text-[#1A1B1E] border-[#CFC7D2]"
+          className={`w-full h-12 text-sm bg-white text-ink ${USE_MOCK ? '' : 'hidden'}`}
           disabled={loading}
-          onClick={handleGoogle}
+          onClick={handleGoogleMock}
         >
           <GoogleIcon />
           {loading ? 'Memproses…' : 'Masuk dengan Google'}
         </Button>
 
+        {!USE_MOCK && (
+          <div className={`w-full min-h-[48px] flex items-center justify-center ${loading ? 'opacity-60 pointer-events-none' : ''}`}>
+            <div ref={googleButtonRef} className="w-full flex justify-center" />
+          </div>
+        )}
+
         {USE_MOCK && (
-          <div className="w-full mt-6 pt-5 border-t border-dashed border-[#CFC7D2]">
-            <p className="text-xs font-medium text-[#74777F] mb-3">
-              Mode demo (backend belum aktif) — masuk sebagai:
+          <div className="w-full mt-6 pt-5 border-t border-dashed border-line">
+            <p className="eyebrow mb-3">
+              Mode demo — masuk sebagai
             </p>
             <div className="grid grid-cols-2 gap-2 mb-3">
               {DEV_LOGIN_PRESETS.map((p) => (
@@ -90,7 +138,7 @@ const LoginScreen = ({ onLogin }) => {
                   type="button"
                   disabled={loading}
                   onClick={() => signIn(p.email)}
-                  className="px-3 py-2 text-xs font-medium rounded-full border border-[#CFC7D2] text-[#3C6DB2] hover:bg-[#1A1B1E]/5 disabled:opacity-50 transition-colors"
+                  className="px-3 py-2 text-xs font-medium rounded-full border border-line bg-white/60 text-brand-700 hover:border-brand-300 hover:bg-white disabled:opacity-50 transition-all"
                 >
                   {p.label}
                 </button>
@@ -111,7 +159,7 @@ const LoginScreen = ({ onLogin }) => {
           </div>
         )}
 
-        <p className="text-xs text-[#74777F] mt-8 max-w-xs">
+        <p className="text-[11px] text-ink-muted mt-6 leading-relaxed">
           Dengan masuk, Anda menyetujui Kebijakan Privasi serta Syarat &amp; Ketentuan kami (sesuai UU PDP).
         </p>
       </div>

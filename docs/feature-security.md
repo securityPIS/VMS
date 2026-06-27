@@ -5,8 +5,9 @@ Dashboard petugas. State terpusat di `SecurityDashboard`, anak-anaknya presentat
 ## `SecurityDashboard.jsx` ✅ (container)
 Memegang state & alur, merakit sidebar + tab + modal.
 - Props: `user`, `onLogout` (memakai `user.location` & `user.email` sebagai konteks).
-- `load()` memuat paralel: `getPendingVisits`, `getActiveVisits`, `getHistory`,
-  `getPackages` (dengan `location` + `actor_email`) saat mount; state `loading`/`error`.
+- `load()` memuat paralel terisolasi: `getPendingVisits`, `getActiveVisits`,
+  `getHistory`, `getPackages` dengan scope `location_id` + `location`; satu endpoint
+  gagal tidak menimpa data tab lain dan error menampilkan kode backend.
 - Aksi lewat helper `run(fn, onDone)`: panggil `api.*` → tutup modal → **muat ulang**;
   `handleCheckIn`, `handleReject`, `handleCheckOut`, `handleAddPackage` (unggah foto
   dulu bila ada), `handlePickup`. Flag `busy` menonaktifkan tombol saat proses.

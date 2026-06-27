@@ -54,8 +54,8 @@ const DashboardOverviewTab = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-[#FDFBFF] p-6 rounded-[28px] shadow-sm border border-[#EAE7EC] h-[420px] flex flex-col">
-          <h3 className="text-lg font-medium text-[#1A1B1E] mb-6">Tren Kunjungan Mingguan</h3>
+        <div className="bg-white/85 backdrop-blur-xl p-6 rounded-[28px] shadow-card border border-line h-[420px] flex flex-col">
+          <h3 className="text-xl text-display mb-6">Tren Kunjungan Mingguan</h3>
           <div className="flex-1 min-h-0">
             {weekly.length === 0 ? (
               <EmptyChart label="Belum ada data kunjungan minggu ini." />
@@ -73,8 +73,8 @@ const DashboardOverviewTab = () => {
           </div>
         </div>
 
-        <div className="bg-[#FDFBFF] p-6 rounded-[28px] shadow-sm border border-[#EAE7EC] h-[420px] flex flex-col">
-          <h3 className="text-lg font-medium text-[#1A1B1E] mb-6">Distribusi Tujuan Kunjungan</h3>
+        <div className="bg-white/85 backdrop-blur-xl p-6 rounded-[28px] shadow-card border border-line h-[420px] flex flex-col">
+          <h3 className="text-xl text-display mb-6">Distribusi Tujuan Kunjungan</h3>
           <div className="flex-1 min-h-0 relative flex justify-center">
             {dept.length === 0 ? (
               <EmptyChart label="Belum ada data tujuan kunjungan." />
@@ -104,10 +104,15 @@ const DashboardOverviewTab = () => {
   );
 };
 
-const MetricCard = ({ icon: Icon, label, value, valueClass = 'text-[#1A1B1E]' }) => (
-  <div className="bg-[#FDFBFF] p-6 rounded-[28px] shadow-sm border border-[#EAE7EC]">
-    <div className="text-[#74777F] text-sm mb-2 flex items-center gap-2"><Icon size={18} /> {label}</div>
-    <div className={`text-4xl font-normal ${valueClass}`}>{value}</div>
+const MetricCard = ({ icon: Icon, label, value, valueClass = 'text-ink' }) => (
+  <div className="group bg-white/85 backdrop-blur-xl p-6 rounded-[28px] shadow-card hover:shadow-premium-lg hover:-translate-y-1 transition-all duration-300 border border-line ring-1 ring-ink/[0.03]">
+    <div className="flex items-center gap-2.5 mb-4">
+      <span className="w-9 h-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center ring-1 ring-brand-100">
+        <Icon size={18} />
+      </span>
+      <span className="text-xs font-semibold uppercase tracking-[0.12em] text-ink-muted">{label}</span>
+    </div>
+    <div className={`text-4xl text-display ${valueClass}`}>{value}</div>
   </div>
 );
 

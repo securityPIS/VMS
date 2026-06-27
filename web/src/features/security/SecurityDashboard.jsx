@@ -1,8 +1,11 @@
 // Container panel Security: memuat data lewat api.* (mock/backend transparan),
 // merakit sidebar, tab, & modal. Setiap aksi memanggil backend lalu memuat ulang.
 import { useCallback, useEffect, useState } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
+import { makeThumb } from '../../components/PhotoCapture';
+import { dateID, sortVisitsNewest, timeID } from '../../lib/constants';
+import Button from '../../components/Button';
 import SecuritySidebar from './SecuritySidebar';
 import QueueTab from './QueueTab';
 import ActiveVisitsTab from './ActiveVisitsTab';
@@ -17,11 +20,26 @@ const TITLES = {
   antrean: 'Antrean Menunggu',
   aktif: 'Tamu Aktif',
   paket: 'Paket & Kiriman Masuk',
-  riwayat: 'Riwayat Kunjungan',
+  riwayat: 'LOG',
 };
 
+const isStatusText = (value) => ['active', 'inactive'].includes(String(value || '').trim().toLowerCase());
+
+function securityScope(user) {
+  return {
+    location_id: user.location_id || '',
+    location: isStatusText(user.location) ? '' : (user.location || ''),
+  };
+}
+
+function locationLabel(user) {
+  const scope = securityScope(user);
+  return scope.location || scope.location_id || 'Lokasi belum valid';
+}
+
 const SecurityDashboard = ({ user, onLogout }) => {
-  const loc = user.location;
+  const loc = locationLabel(user);
+  const locScope = securityScope(user);
   const actor = user.email;
 
   const [activeTab, setActiveTab] = useState('antrean');
@@ -41,6 +59,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
 
   // Field input modal.
   const [cardNumber, setCardNumber] = useState('');
+  const [confirmNotes, setConfirmNotes] = useState('');
   const [rejectReason, setRejectReason] = useState('');
   const [newPackage, setNewPackage] = useState({ sender: '', recipient: '', type: 'Dokumen' });
   const [packagePhoto, setPackagePhoto] = useState('');
@@ -48,63 +67,115 @@ const SecurityDashboard = ({ user, onLogout }) => {
   const load = useCallback(async () => {
     setLoading(true);
     setError('');
-    try {
-      const [p, a, h, pk] = await Promise.all([
-        api.getPendingVisits(loc, actor),
-        api.getActiveVisits(loc, actor),
-        api.getHistory({ location: loc, actor_email: actor }),
-        api.getPackages({ location: loc }, actor),
-      ]);
-      setPending(p);
-      setActive(a);
-      setHistory(h);
-      setPackages(pk);
-    } catch (err) {
-      setError(err.message || 'Gagal memuat data.');
-    } finally {
-      setLoading(false);
-    }
-  }, [loc, actor]);
+    const tasks = [
+      ['Antrean', api.getPendingVisits(locScope), setPending],
+      ['Tamu aktif', api.getActiveVisits(locScope), setActive],
+      ['LOG', api.getHistory(locScope), (rows) => setHistory(sortVisitsNewest(rows))],
+      ['Paket', api.getPackages(locScope), setPackages],
+    ];
+    const results = await Promise.allSettled(tasks.map(([, promise]) => promise));
+    const failures = [];
+    results.forEach((result, index) => {
+      const [label, , apply] = tasks[index];
+      if (result.status === 'fulfilled') {
+        apply(result.value);
+      } else {
+        failures.push(`${label}: ${api.errorDetails(result.reason, 'Gagal memuat data.')}`);
+      }
+    });
+    if (failures.length) setError(failures.join(' '));
+    setLoading(false);
+  }, [locScope.location_id, locScope.location, actor]);
 
   useEffect(() => { load(); }, [load]);
 
-  const closeCheckIn = () => { setCheckInTarget(null); setCardNumber(''); };
+  const closeCheckIn = () => { setCheckInTarget(null); setCardNumber(''); setConfirmNotes(''); };
   const closeReject = () => { setRejectTarget(null); setRejectReason(''); };
 
-  // Bungkus aksi: jalankan, tutup modal, muat ulang; tampilkan error bila gagal.
-  const run = async (fn, onDone) => {
+  // Bungkus aksi: jalankan aksi backend lalu terapkan perubahan ke state lokal
+  // (optimistic) — tanpa memuat ulang keempat dataset, agar respons terasa instan.
+  // Bila aksi gagal, sinkron ulang penuh dari backend dan tampilkan error.
+  const run = async (fn, apply) => {
     setBusy(true);
     setError('');
     try {
-      await fn();
-      if (onDone) onDone();
-      await load();
+      const result = await fn();
+      if (apply) apply(result);
     } catch (err) {
       setError(err.message || 'Aksi gagal.');
+      load();
     } finally {
       setBusy(false);
     }
   };
 
   const handleCheckIn = () => {
-    if (!cardNumber) return;
-    run(() => api.checkIn(checkInTarget.id, cardNumber, actor), closeCheckIn);
+    if (!cardNumber || !confirmNotes.trim()) return;
+    const target = checkInTarget;
+    const card = cardNumber.trim();
+    const notes = confirmNotes.trim();
+    const checkedInAt = new Date();
+    run(() => api.checkIn(target.id, card, notes, actor), () => {
+      setPending((prev) => prev.filter((x) => x.id !== target.id));
+      setActive((prev) => [{
+        ...target,
+        status: 'CHECKED_IN',
+        cardNumber: card,
+        confirmNotes: notes,
+        checkinAt: checkedInAt.toISOString(),
+        checkinDate: dateID(checkedInAt),
+        checkinTime: timeID(checkedInAt),
+      }, ...prev]);
+      closeCheckIn();
+    });
   };
   const handleReject = () => {
     if (!rejectReason) return;
-    run(() => api.rejectVisit(rejectTarget.id, rejectReason, actor), closeReject);
+    const target = rejectTarget;
+    run(() => api.rejectVisit(target.id, rejectReason, actor), () => {
+      setPending((prev) => prev.filter((x) => x.id !== target.id));
+      closeReject();
+    });
   };
   const handleCheckOut = () => {
-    run(() => api.checkOut(checkoutTarget.id, actor), () => setCheckoutTarget(null));
+    const target = checkoutTarget;
+    run(() => api.checkOut(target.id, actor), () => {
+      setActive((prev) => prev.filter((x) => x.id !== target.id));
+      setCheckoutTarget(null);
+    });
   };
-  const handlePickup = (id) => run(() => api.pickupPackage(id, actor));
+  const handlePickup = (id) =>
+    run(() => api.pickupPackage(id, actor), () => {
+      setPackages((prev) => prev.map((p) => (p.id === id ? { ...p, status: 'PICKED_UP' } : p)));
+    });
   const handleAddPackage = () => {
     if (!newPackage.sender || !newPackage.recipient) return;
+    const draft = newPackage;
+    const photo = packagePhoto;
     run(async () => {
       let photoRef = '';
-      if (packagePhoto) photoRef = (await api.uploadPhoto(packagePhoto, 'package', actor)).id;
-      await api.addPackage({ ...newPackage, location: loc, photo_url: photoRef }, actor);
-    }, () => {
+      let photoThumbRef = '';
+      if (photo) {
+        const up = await api.uploadPhoto(photo, 'package', await makeThumb(photo));
+        photoRef = up.id;
+        photoThumbRef = up.thumb_id || '';
+      }
+      const res = await api.addPackage({ ...draft, ...locScope, photo_url: photoRef, photo_thumb_url: photoThumbRef }, actor);
+      return { ...res, photoRef, photoThumbRef };
+    }, (res) => {
+      const d = new Date();
+      setPackages((prev) => [{
+        id: res.package_id,
+        sender: draft.sender,
+        recipient: draft.recipient,
+        type: draft.type,
+        status: 'RECEIVED',
+        photo: res.photoRef || null,
+        photoThumb: res.photoThumbRef || null,
+        location: loc,
+        date: dateID(d),
+        time: timeID(d),
+      }, ...prev]);
       setShowAddPackage(false);
       setNewPackage({ sender: '', recipient: '', type: 'Dokumen' });
       setPackagePhoto('');
@@ -112,19 +183,31 @@ const SecurityDashboard = ({ user, onLogout }) => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F2F6] flex flex-col md:flex-row font-sans">
+    <div className="min-h-screen flex flex-col md:flex-row font-sans">
       <SecuritySidebar
-        user={user}
+        user={{ ...user, location: loc }}
         onLogout={onLogout}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         pendingCount={pending.length}
+        activeCount={active.length}
       />
 
       <main className="flex-1 p-4 md:p-8 overflow-y-auto">
-        <div className="mb-6 md:mb-8 flex items-center justify-between gap-4">
-          <h1 className="text-3xl font-normal text-[#1A1B1E]">{TITLES[activeTab]}</h1>
-          {busy && <Loader2 className="text-[#3C6DB2] animate-spin" size={22} />}
+        <div className="mb-6 md:mb-8 flex items-center justify-between gap-3">
+          <h1 className="text-2xl md:text-3xl text-display">{TITLES[activeTab]}</h1>
+          <div className="flex items-center gap-3 shrink-0">
+            {busy && <Loader2 className="text-[#3C6DB2] animate-spin" size={22} />}
+            {activeTab === 'paket' && (
+              <Button
+                variant="filled"
+                className="md:hidden !px-4 !py-2 !gap-1.5 text-sm whitespace-nowrap"
+                onClick={() => setShowAddPackage(true)}
+              >
+                <Plus size={16} /> Registrasi
+              </Button>
+            )}
+          </div>
         </div>
 
         {error && (
@@ -149,7 +232,16 @@ const SecurityDashboard = ({ user, onLogout }) => {
         )}
       </main>
 
-      <CheckInModal visit={checkInTarget} cardNumber={cardNumber} setCardNumber={setCardNumber} onConfirm={handleCheckIn} onClose={closeCheckIn} busy={busy} />
+      <CheckInModal
+        visit={checkInTarget}
+        cardNumber={cardNumber}
+        setCardNumber={setCardNumber}
+        confirmNotes={confirmNotes}
+        setConfirmNotes={setConfirmNotes}
+        onConfirm={handleCheckIn}
+        onClose={closeCheckIn}
+        busy={busy}
+      />
       <RejectModal visit={rejectTarget} rejectReason={rejectReason} setRejectReason={setRejectReason} onConfirm={handleReject} onClose={closeReject} busy={busy} />
       <CheckoutModal visit={checkoutTarget} onConfirm={handleCheckOut} onClose={() => setCheckoutTarget(null)} busy={busy} />
       <AddPackageModal
