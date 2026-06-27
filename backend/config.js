@@ -20,10 +20,13 @@ const SHEETS = {
 
 // Header tiap sheet = sumber kebenaran urutan kolom (dipakai setup & helper).
 const HEADERS = {
-  Visitors: ['visitor_id', 'email', 'nama', 'ktp', 'phone', 'asal', 'ktp_photo_url', 'ktp_thumb_url', 'created_at'],
-  Visits: ['visit_id', 'visitor_id', 'email', 'nama', 'phone', 'keperluan', 'tujuan', 'location',
+  // `phone` ditaruh di AKHIR (bukan tengah) agar setup/auto-migrasi non-destruktif:
+  // ensureHeaders menambah kolom baru di akhir sehingga data lama tidak bergeser,
+  // dan re-run setupSpreadsheet() pada sheet berisi data tetap selaras.
+  Visitors: ['visitor_id', 'email', 'nama', 'ktp', 'asal', 'ktp_photo_url', 'ktp_thumb_url', 'created_at', 'phone'],
+  Visits: ['visit_id', 'visitor_id', 'email', 'nama', 'keperluan', 'tujuan', 'location',
     'selfie_url', 'selfie_thumb_url', 'status', 'card_number', 'reject_reason', 'confirm_notes', 'security_email',
-    'created_at', 'checkin_at', 'checkout_at', 'schedule_type', 'scheduled_at'],
+    'created_at', 'checkin_at', 'checkout_at', 'schedule_type', 'scheduled_at', 'phone'],
   Users: ['email', 'role', 'name', 'officer_id', 'location_id', 'location', 'status'],
   Locations: ['location_id', 'name', 'active'],
   Packages: ['package_id', 'sender', 'recipient', 'type', 'photo_url', 'photo_thumb_url', 'status',
