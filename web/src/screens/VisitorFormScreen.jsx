@@ -235,6 +235,29 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
   }
 
   // --- Form pendaftaran -------------------------------------------------------
+  // Field Nomor Telepon dipakai di bagian "Informasi Pribadi" untuk tamu baru
+  // maupun lama, jadi diekstrak agar tidak duplikat.
+  const phoneField = (
+    <div className="w-full">
+      <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5 flex items-center gap-1.5">
+        <Phone size={13} className="text-brand-600" /> Nomor Telepon
+      </label>
+      <input
+        type="tel"
+        inputMode="numeric"
+        placeholder="xxxx-xxxx-xxxx"
+        value={formatPhoneID(formData.phone)}
+        onChange={(e) => setPhone(e.target.value)}
+        className={`w-full px-4 py-3 bg-white/70 border rounded-2xl outline-none text-ink transition-all duration-200 placeholder:text-ink-muted/50 ${
+          showErr('phone')
+            ? 'border-[#BA313B] ring-4 ring-[#BA313B]/15 bg-[#FBE9EA]/40'
+            : 'border-line hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15'
+        }`}
+      />
+      {showErr('phone') && <p className="text-xs text-[#BA313B] mt-1.5 ml-0.5">Nomor telepon wajib diisi (minimal {MIN_PHONE_DIGITS} digit).</p>}
+    </div>
+  );
+
   return (
     <div className="min-h-screen p-4 md:py-10 flex justify-center">
       <div className="w-full max-w-lg surface-raised rounded-[28px] overflow-hidden">
@@ -252,65 +275,54 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
         </div>
 
         <div className="p-6 space-y-8">
-          {!isReturning && (
-            <section className="space-y-4">
-              <h2 className="text-xl text-display flex items-center gap-2.5 border-b border-line pb-3">
-                <Users size={20} className="text-brand-600" /> Informasi Pribadi
-              </h2>
-              <div className="w-full">
+          <section className="space-y-4">
+            <h2 className="text-xl text-display flex items-center gap-2.5 border-b border-line pb-3">
+              <Users size={20} className="text-brand-600" /> Informasi Pribadi
+            </h2>
+            {!isReturning && (
+              <>
+                <div className="w-full">
+                  <InputField
+                    label="Nama Lengkap"
+                    value={formData.name}
+                    readOnly
+                    error={showErr('name')}
+                    hint="Nama wajib diisi."
+                    className="[&_input]:bg-brand-50/40 [&_input]:cursor-not-allowed"
+                  />
+                  <p className="text-[11px] text-ink-muted mt-1.5 ml-0.5">Diambil otomatis dari akun Google Anda.</p>
+                </div>
                 <InputField
-                  label="Nama Lengkap"
-                  value={formData.name}
-                  readOnly
-                  error={showErr('name')}
-                  hint="Nama wajib diisi."
-                  className="[&_input]:bg-brand-50/40 [&_input]:cursor-not-allowed"
+                  label="Nomor KTP (16 Digit)"
+                  type="number"
+                  placeholder="Contoh: 3171234567890123"
+                  value={formData.ktp}
+                  error={showErr('ktp')}
+                  hint="Nomor KTP wajib 16 digit."
+                  onChange={(e) => setFormData({ ...formData, ktp: e.target.value })}
                 />
-                <p className="text-[11px] text-ink-muted mt-1.5 ml-0.5">Diambil otomatis dari akun Google Anda.</p>
-              </div>
-              <InputField
-                label="Nomor KTP (16 Digit)"
-                type="number"
-                placeholder="Contoh: 3171234567890123"
-                value={formData.ktp}
-                error={showErr('ktp')}
-                hint="Nomor KTP wajib 16 digit."
-                onChange={(e) => setFormData({ ...formData, ktp: e.target.value })}
-              />
-              <InputField
-                label="Asal / Instansi"
-                placeholder="Darimana Anda berasal"
-                value={formData.asal}
-                error={showErr('asal')}
-                hint="Asal / instansi wajib diisi."
-                onChange={(e) => setFormData({ ...formData, asal: e.target.value })}
-              />
-              <PhotoCapture label="Foto KTP Asli" value={ktpPhoto} onChange={setKtpPhoto} capture="environment" error={showErr('ktpPhoto')} />
-            </section>
-          )}
+              </>
+            )}
+            {phoneField}
+            {!isReturning && (
+              <>
+                <InputField
+                  label="Asal / Instansi"
+                  placeholder="Darimana Anda berasal"
+                  value={formData.asal}
+                  error={showErr('asal')}
+                  hint="Asal / instansi wajib diisi."
+                  onChange={(e) => setFormData({ ...formData, asal: e.target.value })}
+                />
+                <PhotoCapture label="Foto KTP Asli" value={ktpPhoto} onChange={setKtpPhoto} capture="environment" error={showErr('ktpPhoto')} />
+              </>
+            )}
+          </section>
 
           <section className="space-y-4">
             <h2 className="text-xl text-display flex items-center gap-2.5 border-b border-line pb-3">
               <MapPin size={20} className="text-brand-600" /> Detail Kunjungan
             </h2>
-            <div className="w-full">
-              <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5 flex items-center gap-1.5">
-                <Phone size={13} className="text-brand-600" /> Nomor Telepon
-              </label>
-              <input
-                type="tel"
-                inputMode="numeric"
-                placeholder="xxxx-xxxx-xxxx"
-                value={formatPhoneID(formData.phone)}
-                onChange={(e) => setPhone(e.target.value)}
-                className={`w-full px-4 py-3 bg-white/70 border rounded-2xl outline-none text-ink transition-all duration-200 placeholder:text-ink-muted/50 ${
-                  showErr('phone')
-                    ? 'border-[#BA313B] ring-4 ring-[#BA313B]/15 bg-[#FBE9EA]/40'
-                    : 'border-line hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15'
-                }`}
-              />
-              {showErr('phone') && <p className="text-xs text-[#BA313B] mt-1.5 ml-0.5">Nomor telepon wajib diisi (minimal {MIN_PHONE_DIGITS} digit).</p>}
-            </div>
             <div className="w-full">
               <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Lokasi / Gerbang Kedatangan</label>
               <select
