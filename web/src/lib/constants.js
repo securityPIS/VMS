@@ -9,14 +9,6 @@ export const LOCATIONS = [
   'Basement Parking',
 ];
 
-// Jenis barang pada registrasi paket (PRD 5.8).
-export const PACKAGE_TYPES = [
-  'Dokumen',
-  'Kardus Sedang/Besar',
-  'Makanan / Minuman',
-  'Lainnya',
-];
-
 // Konfigurasi badge status kunjungan (UIUX Section 4).
 export const VISIT_STATUS = {
   PENDING: { color: 'bg-[#FFEFD6] text-[#5E4200]', icon: Clock, label: 'Menunggu' },

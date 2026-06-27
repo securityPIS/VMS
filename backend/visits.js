@@ -44,7 +44,12 @@ function checkIn(data, authedEmail) {
     if (row.status !== VISIT_STATUS.PENDING) throw new Error('Kunjungan bukan status PENDING.');
 
     const card = requiredText(data.card_number, 'Nomor kartu', 32);
-    const notes = requiredText(data.confirm_notes || data.notes, 'Catatan konfirmasi', 500);
+    // Catatan konfirmasi hanya wajib untuk kunjungan terjadwal; kedatangan
+    // langsung (NOW) cukup nomor kartu.
+    const isSchedule = String(row.schedule_type || '').toUpperCase() === 'SCHEDULE';
+    const notes = isSchedule
+      ? requiredText(data.confirm_notes || data.notes, 'Catatan konfirmasi', 500)
+      : optionalText(data.confirm_notes || data.notes, 'Catatan konfirmasi', 500);
     const dup = rows.some((v) =>
       v.status === VISIT_STATUS.CHECKED_IN && String(v.card_number).trim() === card);
     if (dup) throw new Error('Nomor kartu sedang digunakan tamu lain.');

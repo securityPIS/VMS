@@ -3,7 +3,6 @@ import ModalBase from '../../components/ModalBase';
 import Button from '../../components/Button';
 import InputField from '../../components/InputField';
 import PhotoCapture from '../../components/PhotoCapture';
-import { PACKAGE_TYPES } from '../../lib/constants';
 
 const AddPackageModal = ({ isOpen, value, setValue, photo, setPhoto, locations, requireLocation = false, onSave, onClose, busy }) => {
   const locationOptions = locations || [];
@@ -60,18 +59,12 @@ const AddPackageModal = ({ isOpen, value, setValue, photo, setPhoto, locations, 
             </select>
           </div>
         )}
-        <div className="w-full">
-          <label className="block text-xs font-semibold tracking-wide text-ink-soft mb-1.5 ml-0.5">Jenis Barang</label>
-          <select
-            className="w-full px-4 py-3 bg-white/70 border border-line rounded-2xl outline-none text-ink transition-all duration-200 hover:border-brand-200 focus:border-brand-400 focus:bg-white focus:ring-4 focus:ring-brand-500/15"
-            value={value.type}
-            onChange={(e) => setValue({ ...value, type: e.target.value })}
-          >
-            {PACKAGE_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
+        <InputField
+          label="Deskripsi Barang"
+          placeholder="Contoh: Dokumen / Kardus sedang / Makanan"
+          value={value.type}
+          onChange={(e) => setValue({ ...value, type: e.target.value })}
+        />
         <PhotoCapture label="Foto Barang / Resi (Opsional)" value={photo} onChange={setPhoto} capture="environment" />
       </div>
     </ModalBase>
