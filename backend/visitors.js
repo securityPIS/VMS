@@ -35,6 +35,7 @@ function submitVisit(data, authedEmail) {
     throw new Error('Persetujuan pemrosesan data wajib diberikan.');
   }
 
+  const phone = validatePhone(data.phone);
   const tujuan = requiredText(data.tujuan, 'Tujuan', 160);
   const keperluan = requiredText(data.keperluan, 'Keperluan', 500);
   const loc = requireActiveLocation({ location_id: data.location_id, location: data.location });
@@ -60,6 +61,7 @@ function submitVisit(data, authedEmail) {
       email,
       nama,
       ktp,
+      phone,
       asal,
       ktp_photo_url: ktpPhotoUrl,
       ktp_thumb_url: ktpThumbUrl,
@@ -73,6 +75,7 @@ function submitVisit(data, authedEmail) {
     visitor_id: visitorId,
     email,
     nama,
+    phone,
     keperluan,
     tujuan,
     location: loc.name,

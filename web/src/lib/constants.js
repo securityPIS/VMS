@@ -47,6 +47,15 @@ export const dateTimeID = (value = new Date()) => {
 
 export const joinDateTime = (date, time) => [date, time].filter(Boolean).join(' ');
 
+// Hanya digit dari nomor telepon (untuk validasi & penyimpanan).
+export const phoneDigits = (value) => String(value || '').replace(/\D/g, '').slice(0, 16);
+
+// Format nomor telepon otomatis menjadi grup 4 digit: xxxx-xxxx-xxxx.
+export const formatPhoneID = (value) => {
+  const digits = phoneDigits(value);
+  return digits.replace(/(\d{4})(?=\d)/g, '$1-');
+};
+
 export const visitScheduleStatus = (visit) =>
   String(visit?.scheduleType || 'NOW').toUpperCase() === 'SCHEDULE' ? 'SCHEDULE' : 'NOW';
 

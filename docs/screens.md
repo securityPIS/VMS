@@ -20,12 +20,21 @@ Halaman masuk (UIUX 5.1). **Satu metode auth: "Masuk dengan Google".**
 ## `VisitorFormScreen.jsx` ✅
 Form registrasi tamu baru / reservasi tamu lama (UIUX 5.2–5.3).
 - Props: `user`, `onSubmit({ visitId, status, tujuan })`.
-- Tamu **baru**: nama, KTP (16 digit), asal, **lokasi/gerbang**, tujuan, keperluan,
-  foto KTP, selfie, consent. Tamu **lama**: lokasi, tujuan, keperluan, selfie, consent.
+- **Nama lengkap** tamu baru diambil otomatis dari akun Google (first + last name,
+  `given_name`/`family_name`); field bersifat read-only.
+- Tamu **baru**: nama (auto-Google), KTP (16 digit), **nomor telepon** (auto-format
+  `xxxx-xxxx-xxxx`), asal, **lokasi/gerbang**, tujuan, keperluan, foto KTP, selfie,
+  consent. Tamu **lama**: nomor telepon, lokasi, tujuan, keperluan, selfie, consent.
+- **Semua isian wajib.** Saat submit, isian kosong/invalid di-highlight dengan border
+  merah (`error` prop pada `InputField`/`PhotoCapture` + helper teks).
 - Lokasi diisi dari `api.getLocations` (fallback `LOCATIONS`) — menentukan antrean
   petugas mana yang menerima kunjungan.
 - Foto via `PhotoCapture` (kamera+kompres). Submit: unggah foto (`api.uploadPhoto`)
   lalu `api.submitVisit`; ada state `submitting` & `error`.
+- **Setelah submit sukses** tampil layar ucapan terima kasih + **ringkasan
+  pendaftaran** dan petunjuk konfirmasi ke petugas security di lobi tempat mendaftar.
+  Tamu **terjadwal** (SCHEDULE) bisa **menyimpan ringkasan sebagai gambar**
+  (`lib/registrationImage.js`) yang juga memuat petunjuk konfirmasi saat kedatangan.
 
 ## `VisitorStatusScreen.jsx` ✅
 Status kunjungan tamu (UIUX 5.4).

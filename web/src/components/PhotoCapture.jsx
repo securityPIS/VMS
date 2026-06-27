@@ -62,7 +62,7 @@ export async function makeThumb(dataUrl, maxSide = 320, quality = 0.7) {
   }
 }
 
-const PhotoCapture = ({ label, value, onChange, capture = 'user' }) => {
+const PhotoCapture = ({ label, value, onChange, capture = 'user', error = false }) => {
   const inputRef = useRef(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -85,7 +85,9 @@ const PhotoCapture = ({ label, value, onChange, capture = 'user' }) => {
   };
 
   return (
-    <div className="border border-dashed border-brand-200 p-4 rounded-2xl text-center bg-brand-50/40">
+    <div className={`border border-dashed p-4 rounded-2xl text-center transition-colors ${
+      error ? 'border-[#BA313B] bg-[#FBE9EA]/40' : 'border-brand-200 bg-brand-50/40'
+    }`}>
       <p className="text-sm font-semibold text-ink mb-2">{label}</p>
       <input ref={inputRef} type="file" accept="image/*" capture={capture} className="hidden" onChange={handleFile} />
       {value ? (

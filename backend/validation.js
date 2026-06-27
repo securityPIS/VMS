@@ -30,6 +30,13 @@ function validateKtp(value) {
   return ktp;
 }
 
+function validatePhone(value) {
+  const digits = String(value || '').replace(/\D/g, '');
+  if (!digits) throw new Error('Nomor telepon wajib diisi.');
+  if (digits.length < 9 || digits.length > 16) throw new Error('Nomor telepon tidak valid (9-16 digit).');
+  return digits;
+}
+
 function maskKtp(value) {
   const ktp = String(value || '').replace(/\D/g, '');
   if (!ktp) return '';

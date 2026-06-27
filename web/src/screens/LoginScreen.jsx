@@ -58,8 +58,17 @@ const LoginScreen = ({ onLogin }) => {
         try {
           api.setAuthSession(auth.idToken, auth.expiresAt, auth.email);
           const user = await api.getRole(auth.email);
-          // Sematkan foto profil Google (klaim ID token) ke objek user untuk avatar.
-          if (alive) onLogin({ ...user, picture: auth.picture || '', name: user.name || auth.name || '' });
+          // Sematkan foto profil + nama (first/last) Google ke objek user.
+          // Nama lengkap tamu baru diambil dari akun Google-nya sendiri.
+          if (alive) {
+            onLogin({
+              ...user,
+              picture: auth.picture || '',
+              name: auth.name || user.name || '',
+              firstName: auth.firstName || '',
+              lastName: auth.lastName || '',
+            });
+          }
         } catch (err) {
           api.clearAuthSession();
           if (alive) {

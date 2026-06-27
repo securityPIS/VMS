@@ -35,12 +35,19 @@ function parseCredential(jwt) {
   const payload = decodeJwtPayload(jwt);
   if (!payload.email) throw new Error('Token Google tidak memuat email.');
   if (payload.email_verified === false) throw new Error('Email Google belum terverifikasi.');
+  // Nama lengkap diambil dari first name (given_name) + last name (family_name)
+  // akun Google tamu sendiri; fallback ke klaim `name` bila keduanya kosong.
+  const firstName = payload.given_name || '';
+  const lastName = payload.family_name || '';
+  const fullName = [firstName, lastName].filter(Boolean).join(' ') || payload.name || '';
   return {
     email: payload.email,
     idToken: jwt,
     expiresAt: Number(payload.exp || 0) * 1000,
     picture: payload.picture || '',   // URL foto profil Google (lh3.googleusercontent.com)
-    name: payload.name || '',
+    name: fullName,
+    firstName,
+    lastName,
   };
 }
 

@@ -188,7 +188,7 @@ export const api = {
       const scheduleType = String(data.schedule_type || 'NOW').toUpperCase() === 'SCHEDULE' ? 'SCHEDULE' : 'NOW';
       const scheduledDate = scheduleType === 'SCHEDULE' ? data.scheduled_date : '';
       store.visits.unshift({
-        id, email: data.email, name: data.name || '', asal: data.asal || '',
+        id, email: data.email, name: data.name || '', phone: data.phone || '', asal: data.asal || '',
         keperluan: data.keperluan, tujuan: data.tujuan, location: data.location || '',
         status: 'PENDING', cardNumber: '', rejectReason: '', confirmNotes: '',
         selfiePhoto: data.selfie_url || '', ktpPhoto: data.ktp_photo_url || '',

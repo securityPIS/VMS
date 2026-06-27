@@ -20,8 +20,8 @@ const SHEETS = {
 
 // Header tiap sheet = sumber kebenaran urutan kolom (dipakai setup & helper).
 const HEADERS = {
-  Visitors: ['visitor_id', 'email', 'nama', 'ktp', 'asal', 'ktp_photo_url', 'ktp_thumb_url', 'created_at'],
-  Visits: ['visit_id', 'visitor_id', 'email', 'nama', 'keperluan', 'tujuan', 'location',
+  Visitors: ['visitor_id', 'email', 'nama', 'ktp', 'phone', 'asal', 'ktp_photo_url', 'ktp_thumb_url', 'created_at'],
+  Visits: ['visit_id', 'visitor_id', 'email', 'nama', 'phone', 'keperluan', 'tujuan', 'location',
     'selfie_url', 'selfie_thumb_url', 'status', 'card_number', 'reject_reason', 'confirm_notes', 'security_email',
     'created_at', 'checkin_at', 'checkout_at', 'schedule_type', 'scheduled_at'],
   Users: ['email', 'role', 'name', 'officer_id', 'location_id', 'location', 'status'],
