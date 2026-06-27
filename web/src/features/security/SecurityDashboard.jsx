@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Loader2, Plus } from 'lucide-react';
 import { api } from '../../lib/api';
 import { makeThumb } from '../../components/PhotoCapture';
-import { dateID, sortVisitsNewest, timeID } from '../../lib/constants';
+import { dateID, sortVisitsNewest, timeID, visitScheduleStatus } from '../../lib/constants';
 import Button from '../../components/Button';
 import SecuritySidebar from './SecuritySidebar';
 import QueueTab from './QueueTab';
@@ -61,7 +61,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
   const [cardNumber, setCardNumber] = useState('');
   const [confirmNotes, setConfirmNotes] = useState('');
   const [rejectReason, setRejectReason] = useState('');
-  const [newPackage, setNewPackage] = useState({ sender: '', recipient: '', type: 'Dokumen' });
+  const [newPackage, setNewPackage] = useState({ sender: '', recipient: '', type: '' });
   const [packagePhoto, setPackagePhoto] = useState('');
 
   const load = useCallback(async () => {
@@ -110,22 +110,32 @@ const SecurityDashboard = ({ user, onLogout }) => {
   };
 
   const handleCheckIn = () => {
-    if (!cardNumber || !confirmNotes.trim()) return;
+    const isSchedule = visitScheduleStatus(checkInTarget) === 'SCHEDULE';
+    if (!cardNumber || (isSchedule && !confirmNotes.trim())) return;
     const target = checkInTarget;
     const card = cardNumber.trim();
     const notes = confirmNotes.trim();
     const checkedInAt = new Date();
+    const checkedIn = {
+      ...target,
+      status: 'CHECKED_IN',
+      cardNumber: card,
+      confirmNotes: notes,
+      checkinAt: checkedInAt.toISOString(),
+      checkinDate: dateID(checkedInAt),
+      checkinTime: timeID(checkedInAt),
+    };
     run(() => api.checkIn(target.id, card, notes, actor), () => {
       setPending((prev) => prev.filter((x) => x.id !== target.id));
-      setActive((prev) => [{
-        ...target,
-        status: 'CHECKED_IN',
-        cardNumber: card,
-        confirmNotes: notes,
-        checkinAt: checkedInAt.toISOString(),
-        checkinDate: dateID(checkedInAt),
-        checkinTime: timeID(checkedInAt),
-      }, ...prev]);
+      setActive((prev) => [checkedIn, ...prev]);
+      // LOG juga ikut berubah ke status Check In tanpa perlu muat ulang.
+      setHistory((prev) => {
+        const exists = prev.some((x) => x.id === target.id);
+        const next = exists
+          ? prev.map((x) => (x.id === target.id ? { ...x, ...checkedIn } : x))
+          : [checkedIn, ...prev];
+        return sortVisitsNewest(next);
+      });
       closeCheckIn();
     });
   };
@@ -139,8 +149,16 @@ const SecurityDashboard = ({ user, onLogout }) => {
   };
   const handleCheckOut = () => {
     const target = checkoutTarget;
+    const checkedOutAt = new Date();
     run(() => api.checkOut(target.id, actor), () => {
       setActive((prev) => prev.filter((x) => x.id !== target.id));
+      // LOG ikut berubah ke status Check Out (auto-refresh tanpa muat ulang).
+      setHistory((prev) => prev.map((x) => (x.id === target.id ? {
+        ...x,
+        status: 'CHECKED_OUT',
+        checkoutAt: checkedOutAt.toISOString(),
+        timeOut: timeID(checkedOutAt),
+      } : x)));
       setCheckoutTarget(null);
     });
   };
@@ -177,7 +195,7 @@ const SecurityDashboard = ({ user, onLogout }) => {
         time: timeID(d),
       }, ...prev]);
       setShowAddPackage(false);
-      setNewPackage({ sender: '', recipient: '', type: 'Dokumen' });
+      setNewPackage({ sender: '', recipient: '', type: '' });
       setPackagePhoto('');
     });
   };

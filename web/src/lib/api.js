@@ -238,7 +238,10 @@ export const api = {
       const card = String(cardNumber || '').trim();
       const notes = String(confirmNotes || '').trim();
       if (!card) throw new Error('Nomor kartu wajib diisi.');
-      if (!notes) throw new Error('Catatan konfirmasi wajib diisi.');
+      // Catatan konfirmasi hanya wajib untuk kunjungan terjadwal (SCHEDULE).
+      const target = store.visits.find((v) => v.id === visitId);
+      const isSchedule = String(target?.scheduleType || 'NOW').toUpperCase() === 'SCHEDULE';
+      if (isSchedule && !notes) throw new Error('Catatan konfirmasi wajib diisi.');
       if (store.visits.some((v) => v.status === 'CHECKED_IN' && String(v.cardNumber).trim() === card)) {
         throw new Error('Nomor kartu sedang digunakan tamu lain.');
       }
