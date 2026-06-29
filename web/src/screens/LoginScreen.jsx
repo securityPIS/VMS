@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
+import ScreenBackdrop from '../components/ScreenBackdrop';
 import { api, USE_MOCK } from '../lib/api';
 import { renderGoogleSignInButton } from '../lib/googleAuth';
 import { DEV_LOGIN_PRESETS } from '../lib/mockData';
@@ -96,18 +97,9 @@ const LoginScreen = ({ onLogin }) => {
   };
 
   return (
-    // Latar dekoratif: gradien korporat + orb lembut blur, CSS murni (tanpa aset gambar) agar tetap ringan.
     // Hanya kotak login yang ditampilkan, terpusat & dioptimalkan untuk layar mobile.
-    <div className="min-h-screen relative flex items-center justify-center p-4 sm:p-6 overflow-hidden bg-ink-gradient">
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div
-          className="absolute inset-0 opacity-[0.15]"
-          style={{ backgroundImage: 'radial-gradient(circle, rgba(255,255,255,0.8) 1px, transparent 1px)', backgroundSize: '26px 26px' }}
-        />
-        <div className="absolute -top-40 -left-32 w-[30rem] h-[30rem] rounded-full bg-brand-300/40 blur-3xl animate-float" />
-        <div className="absolute top-1/3 -right-36 w-[34rem] h-[34rem] rounded-full bg-gold/25 blur-3xl animate-float" style={{ animationDelay: '-3s' }} />
-        <div className="absolute -bottom-44 left-1/4 w-[32rem] h-[32rem] rounded-full bg-pertamina-green/20 blur-3xl animate-float" style={{ animationDelay: '-1.5s' }} />
-      </div>
+    <div className="min-h-screen flex items-center justify-center p-4 sm:p-6 bg-ink-gradient">
+      <ScreenBackdrop />
 
       <div className="relative w-full max-w-sm surface-raised rounded-3xl p-6 sm:p-8 flex flex-col items-center text-center animate-in fade-in zoom-in-95 duration-500">
         <BrandLogo className="h-8 mb-6" />
