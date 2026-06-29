@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { Clock, CheckCircle, X, LogOut } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
+import ScreenBackdrop from '../components/ScreenBackdrop';
 import { api } from '../lib/api';
 
 const FINAL = ['REJECTED', 'CHECKED_OUT'];
@@ -27,8 +28,10 @@ const VisitorStatusScreen = ({ statusData, onLogout }) => {
   }, [statusData.visitId, status]);
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md surface-raised rounded-[28px] p-8 md:p-10 text-center flex flex-col items-center animate-in zoom-in-95 duration-500">
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-ink-gradient">
+      <ScreenBackdrop />
+
+      <div className="relative w-full max-w-md surface-raised rounded-[28px] p-8 md:p-10 text-center flex flex-col items-center animate-in zoom-in-95 duration-500">
         <BrandLogo className="h-8 mb-8" />
 
         {status === 'PENDING' && (

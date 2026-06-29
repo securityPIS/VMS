@@ -9,6 +9,7 @@ import BrandLogo from '../components/BrandLogo';
 import Button from '../components/Button';
 import InputField from '../components/InputField';
 import PhotoCapture, { makeThumb } from '../components/PhotoCapture';
+import ScreenBackdrop from '../components/ScreenBackdrop';
 import { api } from '../lib/api';
 import { dateID, formatPhoneID, LOCATIONS, phoneDigits } from '../lib/constants';
 import { downloadRegistrationImage } from '../lib/registrationImage';
@@ -161,8 +162,10 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
     };
 
     return (
-      <div className="min-h-screen p-4 md:py-10 flex justify-center">
-        <div className="w-full max-w-lg surface-raised rounded-[28px] overflow-hidden animate-in zoom-in-95 duration-500">
+      <div className="min-h-screen p-4 md:py-10 flex justify-center bg-ink-gradient">
+        <ScreenBackdrop />
+
+        <div className="relative w-full max-w-lg surface-raised rounded-[28px] overflow-hidden animate-in zoom-in-95 duration-500">
           <div className="relative bg-ink-gradient px-6 py-8 text-white text-center overflow-hidden">
             <div className="absolute inset-0 opacity-20 pointer-events-none"
               style={{ backgroundImage: 'radial-gradient(28rem 28rem at 80% -30%, #3C6DB2, transparent 60%)' }} />
@@ -259,8 +262,10 @@ const VisitorFormScreen = ({ user, onSubmit }) => {
   );
 
   return (
-    <div className="min-h-screen p-4 md:py-10 flex justify-center">
-      <div className="w-full max-w-lg surface-raised rounded-[28px] overflow-hidden">
+    <div className="min-h-screen p-4 md:py-10 flex justify-center bg-ink-gradient">
+      <ScreenBackdrop />
+
+      <div className="relative w-full max-w-lg surface-raised rounded-[28px] overflow-hidden">
         <div className="relative bg-ink-gradient px-6 py-8 text-white text-center overflow-hidden">
           <div className="absolute inset-0 opacity-20 pointer-events-none"
             style={{ backgroundImage: 'radial-gradient(28rem 28rem at 80% -30%, #3C6DB2, transparent 60%)' }} />
